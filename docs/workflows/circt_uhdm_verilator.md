@@ -2,7 +2,7 @@
 
 ## 1. 适用目标
 
-这条流程用于老师最新提出的 DSC 路线：结构不能由大模型猜；先利用 UHDM 与 CIRCT 固化模块、
+这条流程用于当前 DSC 路线：结构不能由大模型猜；先利用 UHDM 与 CIRCT 固化模块、
 端口、实例、连线和 SSA 行为证据，再判断 CIRCT 的 SystemC 后端能走到哪一步。后端不能完成的
 模块，优先使用 Verilator `--sc` 生成的 cycle-level 模型作黑盒；只有明确定位到局部 operation
 缺口后，才允许 Agent 补 CIRCT pass 或局部 SystemC method。

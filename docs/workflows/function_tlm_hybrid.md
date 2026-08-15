@@ -26,7 +26,7 @@ RTL 配置已通过 golden 验证。
 
 已重新找到并解包 `dsc_cix_20260723.rar`，SHA-256 为
 `58ee0c4532db91964ed366e86c53b2abc05b6dc4831ba287408a81b55c57ae79`。它只有 3 份 PDF 和 42 份
-SystemVerilog：没有 DSC C/C++ 编码器、输入图片、PPS 文件、testbench 或期望 bitstream。因此老师
+SystemVerilog：没有 DSC C/C++ 编码器、输入图片、PPS 文件、testbench 或期望 bitstream。因此当前
 提到的“测试数据和参考答案”不在这份 RAR 内，需要公司另行提供或确认。
 
 以下已有内容都不是黄金软件模型：

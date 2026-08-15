@@ -1,0 +1,24 @@
+schema_version: 1
+workspace: .
+allowed_changes:
+  - task.md
+  - harness.yaml
+  - README.md
+  - TASKS.md
+  - tasks/T6_hybrid_differential.md
+  - configs/**
+  - datasets/**
+  - docs/reports/**
+  - evidence/results/**
+  - models/cycle_systemc/**
+  - scripts/**
+  - src/dscflow/workflows/hybrid/**
+  - tests/**
+  - tools/**
+checks:
+  - id: python-tests
+    category: test
+    command: [bash, scripts/run_python_tests.sh]
+  - id: hybrid-differential-x86
+    category: test
+    command: [bash, scripts/run_hybrid_differential_verification.sh]

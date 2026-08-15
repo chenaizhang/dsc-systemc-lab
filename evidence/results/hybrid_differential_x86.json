@@ -1,0 +1,168 @@
+{
+  "format": "dsc-hybrid-differential-verification-v1",
+  "version": "1.0.0",
+  "status": "completed_rtl_function_mismatch_localized",
+  "host": {
+    "architecture": "x86_64",
+    "node": "francis-Virtual-Machine"
+  },
+  "tools": {
+    "verilator": "Verilator 5.032 2025-01-01 rev (Debian 5.032-1)",
+    "systemc": "3.0.2",
+    "cxx": "c++ (Ubuntu 15.2.0-16ubuntu1) 15.2.0"
+  },
+  "source_function_model": {
+    "pass": true,
+    "report": "/home/francis/Work/dsc-systemc-lab/.work/runs/hybrid-differential/golden/report.json",
+    "case": {
+      "id": "rgb444-8bpc-8bpp-192x108-two-slices",
+      "input_sha256": "d54ae9b32d303a4e1423160bc88b5ca854c24e272385ca63bfbdf9c5bb48b7f3",
+      "reference_sha256": "375488877108b8fcc830273423aa121ebaf19e16dbf3d3fc3b72215fc679f211",
+      "reference_bytes": 20868
+    }
+  },
+  "stimulus": {
+    "kind": "shared_ppm_pps_apb_axi_stream",
+    "input_width": 192,
+    "input_height": 108,
+    "input_sha256": "d54ae9b32d303a4e1423160bc88b5ca854c24e272385ca63bfbdf9c5bb48b7f3",
+    "pps_source": "bytes 4..131 of VESA DSCF output"
+  },
+  "models": {
+    "rtl_monolithic": "Vdsc_encoder generated with Verilator --sc",
+    "rtl_split": [
+      "Vdsce_apb",
+      "Vdsce_command",
+      "Vdsce_engine",
+      "Vdsce_interrupt",
+      "Vdsce_pps",
+      "Vdsce_reset",
+      "Vdsce_timers"
+    ],
+    "hybrid_cycle_apb": {
+      "systemc": [
+        "CycleApb"
+      ],
+      "verilator_blackboxes": [
+        "Vdsce_command",
+        "Vdsce_engine",
+        "Vdsce_interrupt",
+        "Vdsce_pps",
+        "Vdsce_reset",
+        "Vdsce_timers"
+      ]
+    }
+  },
+  "rtl_support_shims": {
+    "reason": "delivered dsc_support_primitives.sv contains declarations without behavior",
+    "substituted_modules": [
+      "gprim_sync_stage",
+      "gprim_sync2_stage",
+      "gram_bist_1r1w"
+    ],
+    "source": "models/cycle_systemc/rtl_shims/dsc_support_primitives.sv",
+    "boundary": "functional simulation semantics; proprietary BIST behavior is not modeled"
+  },
+  "runtime": {
+    "format": "dsc-hybrid-differential-runtime-v1",
+    "cycles": 255849,
+    "input": {
+      "width": 192,
+      "height": 108
+    },
+    "setup": {
+      "command": 3,
+      "startup_status": 8,
+      "pps_height": 108,
+      "pps_width": 192,
+      "pps_slice_height": 108,
+      "pps_slice_width": 96,
+      "pps_chunk_size": 96,
+      "replacement_pps_equal": true
+    },
+    "drain_target_reached": false,
+    "module_interface_trace": "/home/francis/Work/dsc-systemc-lab/.work/runs/hybrid-differential/outputs/module_interface_trace.csv",
+    "output_sidebands": {
+      "line_markers": 0,
+      "frame_markers": 1
+    },
+    "bytes": {
+      "golden": 20736,
+      "rtl_monolithic": 7104,
+      "rtl_split": 7104,
+      "hybrid_cycle_apb": 7104
+    },
+    "bitstream_first_mismatch": {
+      "rtl_vs_golden": 24,
+      "split_vs_rtl": null,
+      "hybrid_vs_split": null
+    },
+    "cycle_first_difference": {
+      "split_vs_rtl": null,
+      "hybrid_vs_split": null
+    }
+  },
+  "module_interface_trace": "/home/francis/Work/dsc-systemc-lab/.work/runs/hybrid-differential/outputs/module_interface_trace.csv",
+  "outputs": {
+    "golden": {
+      "bytes": 20736,
+      "sha256": "1e6c274d866a2777b854ea9769335a3dabcdef0b62cab4b0b3c47732ed702ca0",
+      "path": "/home/francis/Work/dsc-systemc-lab/.work/runs/hybrid-differential/outputs/golden_payload.bin"
+    },
+    "rtl_monolithic": {
+      "bytes": 7104,
+      "sha256": "0ac1d51fe05022a7f434e1ad3705c9dc6f8661fd4ae7b15c928b0ae8cf6a275c",
+      "path": "/home/francis/Work/dsc-systemc-lab/.work/runs/hybrid-differential/outputs/rtl_monolithic.bin"
+    },
+    "rtl_split": {
+      "bytes": 7104,
+      "sha256": "0ac1d51fe05022a7f434e1ad3705c9dc6f8661fd4ae7b15c928b0ae8cf6a275c",
+      "path": "/home/francis/Work/dsc-systemc-lab/.work/runs/hybrid-differential/outputs/rtl_split.bin"
+    },
+    "hybrid_cycle_apb": {
+      "bytes": 7104,
+      "sha256": "0ac1d51fe05022a7f434e1ad3705c9dc6f8661fd4ae7b15c928b0ae8cf6a275c",
+      "path": "/home/francis/Work/dsc-systemc-lab/.work/runs/hybrid-differential/outputs/hybrid_cycle_apb.bin"
+    }
+  },
+  "comparisons": {
+    "rtl_vs_golden": {
+      "byte": 24,
+      "reference": 91,
+      "candidate": 0
+    },
+    "split_vs_rtl": null,
+    "hybrid_vs_split": null
+  },
+  "diagnostics": {
+    "golden": {
+      "word_bytes": 24,
+      "words": 864,
+      "adjacent_duplicate_words": 10,
+      "paired_duplicate_words": 6
+    },
+    "rtl_monolithic": {
+      "word_bytes": 24,
+      "words": 296,
+      "adjacent_duplicate_words": 148,
+      "paired_duplicate_words": 148
+    },
+    "rtl_first_word_matches_golden": true,
+    "rtl_output_byte_delta": -13632,
+    "classification": "shared RTL behavior differs from independent VESA function model",
+    "first_suspect_boundary": {
+      "module": "dsce_engine shared RTL output path",
+      "evidence": "0 output line markers observed before drain timeout",
+      "inference": true
+    }
+  },
+  "gates": {
+    "software_function_byte_exact": true,
+    "monolithic_rtl_ran": true,
+    "split_module_network_cycle_exact": true,
+    "cycle_apb_replacement_cycle_exact": true,
+    "rtl_matches_vesa_golden": false,
+    "workflow_completed": true
+  },
+  "claim_boundary": "The report proves only this shared vector and configuration. Verilator preserves RTL bugs. CycleApb is the only non-Verilator cycle module in the hybrid run; remaining modules are explicit Verilator-SystemC black boxes."
+}

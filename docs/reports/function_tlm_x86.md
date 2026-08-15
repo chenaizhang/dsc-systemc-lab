@@ -2,7 +2,7 @@
 
 ## 1. 目的
 
-落实老师提出的第一层验证基线：先得到一个不含 RTL 层次、时钟和流水线的纯软件 DSC model，
+落实第一层验证基线：先得到一个不含 RTL 层次、时钟和流水线的纯软件 DSC model，
 通过输入图像直接产生压缩码流；再用相同的 APB/AXI-Stream 事务边界包装成单顶层 TLM SystemC，
 作为后续数据流级 SystemC 和 Verilator 混合替换的参考模型。
 
@@ -27,7 +27,7 @@
 | 期望 `.dsc`/golden bitstream | 0 |
 | testbench | 0 |
 
-所以原包包含 Spec 和完整 RTL，但没有老师所说的纯软件 model，也没有能直接逐字节比对的公司测试
+所以原包包含 Spec 和完整 RTL，但没有需求中的纯软件 model，也没有能直接逐字节比对的公司测试
 数据或参考答案。此前文档里“原压缩包已不存在”的说法已经纠正；真正结论是“RAR 已找到，但里面
 没有这些文件”。
 
@@ -68,7 +68,7 @@ agent 看着 RTL 自行推理出来的；UHDM/systemc-clang 仍用于后续结�
 - `tools/run_dsc_reference_differential.py`：生成刺激、调用两套路径并输出 JSON 报告。
 
 `DscFunctionTlm` 内部没有子 `SC_MODULE`、`sc_fifo`、`SC_METHOD`、`SC_THREAD`、`SC_CTHREAD` 或
-时钟沿状态机。SystemC 只保留可替换的事务接口，压缩算法是一次完整帧级函数调用，符合老师所说的
+时钟沿状态机。SystemC 只保留可替换的事务接口，压缩算法是一次完整帧级函数调用，符合本任务的
 “像 QEMU 一样的纯 function model”。
 
 ## 5. 测试过程
@@ -109,7 +109,7 @@ agent 看着 RTL 自行推理出来的；UHDM/systemc-clang 仍用于后续结�
 
 ## 7. 结论与边界
 
-老师要求的纯软件 function model 和单顶层 TLM wrapper 已经落地，并在真实 x86 环境完成了官方
+纯软件 function model 和单顶层 TLM wrapper 已经落地，并在真实 x86 环境完成了官方
 参考程序的位精确验证。对于已记录的 RGB 4:4:4 双切片配置，可以确认输出不是占位数据，也不需要
 LLM 在运行时推理补代码。
 

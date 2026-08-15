@@ -4,10 +4,12 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 .venv/
+*.egg-info/
 
 # Native build and run output
 build/
 .work/
+.eda-harness/
 compile_commands.json
 *.o
 *.a

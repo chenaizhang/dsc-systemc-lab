@@ -2,7 +2,7 @@
 
 ## 1. 目的
 
-本报告回答老师提出的四个具体问题：
+本报告回答本阶段的四个具体问题：
 
 1. 真实 DSC SystemVerilog 能否通过 CIRCT frontend 得到 HW/Comb/Seq core IR；
 2. 模块、端口、模块间实例连线和胶水逻辑能否进入 CIRCT 生态；
@@ -175,7 +175,7 @@ CIRCT 输出。
 
 ## 5. 结论
 
-1. 老师要求的“先利用 CIRCT 生态获得层次和行为 IR”已经真实跑通；不是 AI 读 SV 后声称转换。
+1. “先利用 CIRCT 生态获得层次和行为 IR”已经真实跑通；不是 AI 读 SV 后声称转换。
 2. 当前最先卡住的不是 `seq.to_clock`，而是 package task 产生的 `llhd.coroutine`。只有先处理或
    隔离该 operation，才能继续测 Comb/Seq 的原生 SystemC backend 覆盖率。
 3. Verilator-SystemC 的整核和两个局部黑盒均可构建，端口与 CIRCT 结构一致，可作为混合仿真的

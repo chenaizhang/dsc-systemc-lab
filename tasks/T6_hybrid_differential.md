@@ -17,3 +17,16 @@
 - 每个替换组合有机器可读报告；
 - 最终输出与 T5 软件 golden 一致；
 - 所有 cycle SystemC 替换通过后，才可把对应 RTL 标为该数据集下功能通过。
+
+## 当前进度
+
+| 项目 | 状态 |
+|---|---|
+| 统一 PPM/PPS/APB/AXI stimulus | 已完成 |
+| 单体 `Vdsc_encoder` Verilator-SystemC | 已完成 |
+| 7 模块拆分网络与单体逐周期差分 | 已通过 |
+| `dsce_apb → CycleApb` 真实混合替换 | 已通过 |
+| 最终输出与 VESA golden | 未通过：7,104 vs 20,736 字节 |
+| 其余 6 模块 cycle SystemC 替换 | 待完成 |
+
+详细过程和结论见 `docs/reports/hybrid_differential_x86.md`。当前不得把 T6 整体标成算法功能通过。
