@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "models": {
+    "function_tlm": {
+      "path": "models/function_tlm",
+      "external_boundary": "APB and pixel/bitstream TLM-2.0 sockets",
+      "internal_hierarchy": false,
+      "algorithm": "VESA DSC C reference adapter",
+      "golden_candidate": true
+    },
+    "dataflow_systemc": {
+      "path": "models/dataflow_systemc",
+      "external_boundary": "APB and pixel/bitstream TLM-2.0 sockets",
+      "internal_hierarchy": true,
+      "algorithm": "placeholder only",
+      "golden_candidate": false
+    },
+    "cycle_systemc": {
+      "path": "generated/cycle_systemc",
+      "external_boundary": "signal-level RTL-compatible ports",
+      "internal_hierarchy": true,
+      "algorithm": "pending UHDM-guided Agent/CIRCT implementation",
+      "golden_candidate": false
+    },
+    "verilator_reference": {
+      "path": ".work/runs/staged-circt",
+      "external_boundary": "Verilator --sc signal-level wrapper",
+      "internal_hierarchy": "generated from RTL",
+      "algorithm": "reference RTL behavior",
+      "golden_candidate": false
+    }
+  }
+}

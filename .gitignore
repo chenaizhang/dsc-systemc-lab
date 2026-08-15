@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.venv/
+
+# Native build and run output
+build/
+.work/
+compile_commands.json
+*.o
+*.a
+*.so
+*.dylib
+*.exe
+
+# EDA output
+obj_dir/
+simv*
+*.vcd
+*.fst
+*.vvp
+*.uhdm
+surelog.log
+
+# Internal/licensed inputs stay available locally but are never committed.
+inputs/private/**
+!inputs/private/README.md
+third_party/**
+!third_party/README.md
+
+# Editor/OS files
+.DS_Store
+*.swp
+*~

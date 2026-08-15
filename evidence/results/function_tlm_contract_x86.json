@@ -1,0 +1,67 @@
+{
+  "format": "llm4eda-dsc-function-tlm-x86-verification",
+  "version": "1.0.0",
+  "verified_at": "2026-08-13T00:15:00+08:00",
+  "status": "vesa_reference_adapter_passed_company_vectors_missing",
+  "environment": {
+    "architecture": "x86_64",
+    "cxx": "Ubuntu GCC 15.2.0",
+    "systemc": "3.0.2",
+    "python": "3.14.4"
+  },
+  "archive_audit": {
+    "original_archive_currently_available": true,
+    "archive_sha256": "58ee0c4532db91964ed366e86c53b2abc05b6dc4831ba287408a81b55c57ae79",
+    "preserved_input_inventory": {
+      "pdf_documents": 3,
+      "systemverilog_files": 42
+    },
+    "software_codec_found_in_archive": false,
+    "company_vectors_found": false,
+    "official_vesa_reference_codec_acquired": true,
+    "existing_models_are_golden": false
+  },
+  "implementation": {
+    "top": "dsc_function_tlm::DscFunctionTlm",
+    "single_systemc_module": true,
+    "child_systemc_modules": 0,
+    "internal_processes": 0,
+    "codec_adapter": "dsc_function_tlm::SoftwareDscCodec",
+    "codec_implementation": "dsc_function_tlm::VesaReferenceCodec",
+    "default_requires_bit_exact_golden": true,
+    "shared_tlm_interface_with_dataflow_model": true
+  },
+  "x86_checks": {
+    "function_tlm_configure": true,
+    "function_tlm_compile_werror": true,
+    "function_tlm_ctest_passed": 1,
+    "vesa_source_model_x86_compile": true,
+    "vesa_cli_cpp_adapter_byte_exact": true,
+    "vesa_cli_single_top_tlm_byte_exact": true,
+    "differential_payload_bytes": 20736,
+    "runtime_no_child_module": true,
+    "non_golden_rejection": true,
+    "dataflow_systemc_recompile": true,
+    "dataflow_systemc_smoke": true,
+    "python_gate_tests_passed": 6,
+    "repository_pytest_passed": 57,
+    "repository_pytest_skipped": 2,
+    "unittest_subtests_passed": 6,
+    "changed_scope_ruff_pass": true
+  },
+  "golden_status": {
+    "vesa_reference_ready": true,
+    "company_configuration_ready": false,
+    "reason": "the official VESA model path is verified, but the delivered archive has no company input/PPS/expected bitstream vector",
+    "status_command": "vesa_reference_ready_company_vectors_missing"
+  },
+  "source_sha256": {
+    "dsc_tlm_interface.hpp": "71818c7774bf0f1bb9725cc302c51f0b8ef11b1e97c2ae317d2052c222261d70",
+    "dsc_function_tlm.hpp": "d0fc7dd99d4573df461712bfbb0ce3e29788b8d20586e596d334541be9e1d51a",
+    "vesa_reference_codec.hpp": "97370b19cf3bb511a33d8a721d984e3cf650cb56b21c88aafebc137a66eb7b71",
+    "vesa_reference_codec.cpp": "60c332ec9df566eccb25a7ce6191ce57d4ce37f9b234378de0c5dc35820dafe4",
+    "dsc_function_tlm_contract.cpp": "172fc6cda2df07190478edda49df183e271935e016cc820d757f0d0924b78973",
+    "vesa_reference_codec_contract.cpp": "515c6b04a95daba972bbad94ad1d12d0a3333372cec9466eb18ba322420bba8f"
+  },
+  "claim_boundary": "The official VESA CLI, in-process C++ adapter, and single-top TLM output are byte-exact for the recorded RGB 4:4:4 two-slice case. Company-specific correctness remains pending because its delivered archive has no input/PPS/expected bitstream vector."
+}

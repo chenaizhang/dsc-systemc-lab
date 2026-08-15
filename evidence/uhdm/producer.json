@@ -1,0 +1,321 @@
+{
+  "compile": {
+    "all_filelists": [],
+    "appended_sources": [
+      "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsc_encoder.sv",
+      "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_apb.sv",
+      "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_bpvector.sv",
+      "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_bypass.sv",
+      "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_command.sv",
+      "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_convert.sv",
+      "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_decision.sv",
+      "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_defs_pkg.sv",
+      "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_engine.sv",
+      "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_flat_check.sv",
+      "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_flat_flags.sv",
+      "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_flatness.sv",
+      "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_format.sv",
+      "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_format_buffer.sv",
+      "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_ich.sv",
+      "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_ich_candidate.sv",
+      "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_ich_decision.sv",
+      "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_ich_history.sv",
+      "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_input_buffer.sv",
+      "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_interrupt.sv",
+      "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_linemem.sv",
+      "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_mmap.sv",
+      "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_mpp.sv",
+      "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_muxword.sv",
+      "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_pack.sv",
+      "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_partition.sv",
+      "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_pps.sv",
+      "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_predict.sv",
+      "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_qlevel.sv",
+      "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_quant.sv",
+      "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_rate.sv",
+      "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_rate_adjust.sv",
+      "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_regdefs_pkg.sv",
+      "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_reset.sv",
+      "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_sad.sv",
+      "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_slice.sv",
+      "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_slice_buffer.sv",
+      "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_slice_mux.sv",
+      "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_stream_builder.sv",
+      "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_stream_fifo.sv",
+      "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_timers.sv",
+      "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_vlc.sv"
+    ],
+    "filelist_source_closure": [],
+    "filelists": [],
+    "working_directory": "/workspace/dsc-tlm-project"
+  },
+  "image_revision": "17065d4d94c2490ee0c07c8f39191811b1cb0e1b",
+  "inputs": [
+    {
+      "path": "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsc_encoder.sv",
+      "sha256": "8aacee324e2176bc4e2a40ce48e6045a91d5d9c9ac0bbecbbeb1c178318c5e04"
+    },
+    {
+      "path": "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_apb.sv",
+      "sha256": "e8fc6b5a7551e35a5c5aedd403589f6046064d68c41382421c53843b8b6bf886"
+    },
+    {
+      "path": "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_bpvector.sv",
+      "sha256": "415c6a3575795adb14f58d4aa4d61a8550478a68b5c65cdfebb599af57d4a802"
+    },
+    {
+      "path": "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_bypass.sv",
+      "sha256": "0f0553e1eb36d12604401d69a027ef4dae2bda74e83b66fb57532bf22c4b1c21"
+    },
+    {
+      "path": "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_command.sv",
+      "sha256": "040bd3de7ec0b2b8ada7e93c78034200349c43db70e3cdd16585efe470dfcf27"
+    },
+    {
+      "path": "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_convert.sv",
+      "sha256": "f4a12b532dc1b8f544101b656df69cc36b3809d941e510fb2ce5f622a5345e6a"
+    },
+    {
+      "path": "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_decision.sv",
+      "sha256": "6fe33cb12f14d3dc9b736e15d54a949c2b61091959e22c575c862022ea13b946"
+    },
+    {
+      "path": "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_defs_pkg.sv",
+      "sha256": "9c555b0f83e5e1e4a68d8c999963e7c1a73ba28a5d653485289b89873e180a1d"
+    },
+    {
+      "path": "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_engine.sv",
+      "sha256": "748897395b956d1eaa61e600c4a6d75332b9be172065ce55ef7074b0d5c523c3"
+    },
+    {
+      "path": "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_flat_check.sv",
+      "sha256": "c1bda96852700f198aa32d89220d0285f7f641bcef8b0b0b26ec4adca0c2d8e8"
+    },
+    {
+      "path": "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_flat_flags.sv",
+      "sha256": "0778fc473244581147cd7c1fc6d3672f85c18795c55d5c03e63d76c379bef3e0"
+    },
+    {
+      "path": "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_flatness.sv",
+      "sha256": "e319f2b65dfb29c3c49ec83fce33a3d1801b8de0ecb02c1bdbb21c01a8b213ff"
+    },
+    {
+      "path": "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_format.sv",
+      "sha256": "fa4909e02142941d1c54149f5308890cf0cd40a442dc267a7f72ca4712b42ca0"
+    },
+    {
+      "path": "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_format_buffer.sv",
+      "sha256": "021d802f078579b98796406b2ad9178c8ca6b70f852000fbac46d0d5af579bcc"
+    },
+    {
+      "path": "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_ich.sv",
+      "sha256": "8d1b74bf89c72af186d2e2d51b67e7accf2ba6511185c74ad5dcd598aa850fbc"
+    },
+    {
+      "path": "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_ich_candidate.sv",
+      "sha256": "4e1f7326039ce5ec50bbdb03cb97f3c7326b99c93e551e9dfe34b0f2d37c7f06"
+    },
+    {
+      "path": "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_ich_decision.sv",
+      "sha256": "d4ab1c86bf0fe937007006fc55ca60d31d7cea8bfcbace1a990f5c450d86dd86"
+    },
+    {
+      "path": "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_ich_history.sv",
+      "sha256": "1f926a2b8615782bfd67da18d4e7b27018667e4b34dd28a42a6d6d4f7fda4029"
+    },
+    {
+      "path": "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_input_buffer.sv",
+      "sha256": "32a8c4982173689077bf8679069ce71bee5d975eb58ba764fd88b9f08d4fddbe"
+    },
+    {
+      "path": "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_interrupt.sv",
+      "sha256": "5b96b7579e584fb08434b3d2eb8009ffff1a6609320b8a6c9fff049f858e55dc"
+    },
+    {
+      "path": "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_linemem.sv",
+      "sha256": "5b1fb4971ffea7e102deb91a6ed378c075e52bee3d43d437e0dee32cb98a7d1b"
+    },
+    {
+      "path": "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_mmap.sv",
+      "sha256": "c43c9c3b1734a97d9abc69f91eefb826104346026f30f4efd7c8c3abace9e7da"
+    },
+    {
+      "path": "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_mpp.sv",
+      "sha256": "28570c6f39259adf6fd4b1bef2c2e307f84362d332318d129efc4e38d491c747"
+    },
+    {
+      "path": "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_muxword.sv",
+      "sha256": "deb5a99ebc523233dd6a4ff9f90a56142205a7d84d39473be98c95c5c9b14e3e"
+    },
+    {
+      "path": "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_pack.sv",
+      "sha256": "d119d4c9e33939e91b2e86e9d2804f51181e50f1b694d7e5f41608245490d20d"
+    },
+    {
+      "path": "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_partition.sv",
+      "sha256": "f6ba653970854b402fbe3a15d7a61d0e89abb6f11f753f42eaa87defb5bcf09e"
+    },
+    {
+      "path": "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_pps.sv",
+      "sha256": "38cce7369e22630a81a07b6795876b3fa5c4d39c97f54bacccc34c321bcdab38"
+    },
+    {
+      "path": "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_predict.sv",
+      "sha256": "f03de858afc3bedd669e58716c977142ef30abffd1c338263e4585467c02d5ce"
+    },
+    {
+      "path": "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_qlevel.sv",
+      "sha256": "3a75bf54f5aeb5a73a10abac8fc5e0b08844546795a5580685617a01863a3d0f"
+    },
+    {
+      "path": "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_quant.sv",
+      "sha256": "ee66219f5cc74980c6a116ee4692f49baf993a06a9f4f6a5b496ef2c32b6b1e1"
+    },
+    {
+      "path": "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_rate.sv",
+      "sha256": "bbc49f0386e85c08926fd5ac3bee43a18331eaa9322af39f5d09d0549f172c7f"
+    },
+    {
+      "path": "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_rate_adjust.sv",
+      "sha256": "20af0749921ddb93eaf1a12fc2068a8394714818b4e0c443b27ef53fa9f6fadf"
+    },
+    {
+      "path": "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_regdefs_pkg.sv",
+      "sha256": "395c81483534ebc4eefad6c158b9aa8268c00260062b1fe2e6a58371aa595a2d"
+    },
+    {
+      "path": "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_reset.sv",
+      "sha256": "11ef937509b6febed79cae2bc8b9c86f20c776f8ff0dfb2c22c6d5c65c7fa1f1"
+    },
+    {
+      "path": "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_sad.sv",
+      "sha256": "4ea612fb2b12013f6c11748ecef8214a3c3007c6a47d8c067a64c9350bd813da"
+    },
+    {
+      "path": "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_slice.sv",
+      "sha256": "c4eb2187986d409a6f1990ccdbea4b04cdb61e5fa83078afc439ceea1663ec74"
+    },
+    {
+      "path": "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_slice_buffer.sv",
+      "sha256": "0b41d64ad65197e9dcb95310b18dd1d5e0c89833204f1b4a25c5680192daf232"
+    },
+    {
+      "path": "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_slice_mux.sv",
+      "sha256": "0b751fe315b303bbd65ef11a2cdf5ac153058cf0f1de94bd7916583ef743f1f6"
+    },
+    {
+      "path": "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_stream_builder.sv",
+      "sha256": "be5d78b4ebaa7bea166f4c1ae3f09c044a317ac4b778a6a9714152d24334b07f"
+    },
+    {
+      "path": "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_stream_fifo.sv",
+      "sha256": "ad1057a38a98b9d769a841ba49ac446ea0011c7d45f0ee5fe74f258418041c5c"
+    },
+    {
+      "path": "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_timers.sv",
+      "sha256": "cdba30798b22fa6d84bf9ca30594bb63acdea51abd869732742431539e67e251"
+    },
+    {
+      "path": "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_vlc.sv",
+      "sha256": "64d63f57ab0036b347132a38262eee6b6a5ef9e42179e2c07ef95d35072d290b"
+    }
+  ],
+  "producer": "uhdm",
+  "schema_version": 1,
+  "tools": {
+    "surelog": {
+      "command": [
+        "surelog",
+        "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsc_encoder.sv",
+        "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_apb.sv",
+        "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_bpvector.sv",
+        "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_bypass.sv",
+        "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_command.sv",
+        "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_convert.sv",
+        "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_decision.sv",
+        "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_defs_pkg.sv",
+        "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_engine.sv",
+        "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_flat_check.sv",
+        "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_flat_flags.sv",
+        "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_flatness.sv",
+        "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_format.sv",
+        "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_format_buffer.sv",
+        "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_ich.sv",
+        "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_ich_candidate.sv",
+        "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_ich_decision.sv",
+        "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_ich_history.sv",
+        "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_input_buffer.sv",
+        "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_interrupt.sv",
+        "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_linemem.sv",
+        "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_mmap.sv",
+        "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_mpp.sv",
+        "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_muxword.sv",
+        "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_pack.sv",
+        "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_partition.sv",
+        "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_pps.sv",
+        "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_predict.sv",
+        "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_qlevel.sv",
+        "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_quant.sv",
+        "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_rate.sv",
+        "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_rate_adjust.sv",
+        "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_regdefs_pkg.sv",
+        "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_reset.sv",
+        "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_sad.sv",
+        "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_slice.sv",
+        "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_slice_buffer.sv",
+        "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_slice_mux.sv",
+        "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_stream_builder.sv",
+        "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_stream_fifo.sv",
+        "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_timers.sv",
+        "/workspace/dsc-cix/dsc_cix_20260723/verilog_dsc/dsce_vlc.sv",
+        "-top",
+        "dsc_encoder",
+        "-parse",
+        "-elabuhdm"
+      ],
+      "log": "/workspace/dsc-tlm-project/.systemc-agent/tools/surelog.log",
+      "returncode": 0,
+      "status": "passed",
+      "validation": "non-empty UHDM database and zero Surelog ERROR/FATAL summary"
+    },
+    "uhdm": {
+      "database": ".systemc-agent/tools/surelog-work/slpp_all/surelog.uhdm",
+      "database_sha256": "c94b0bc0962d230f143aae217a6fd6b48e069f9e9f2cb1e6ea6fe68ced903a34",
+      "database_size": 301069122,
+      "status": "passed",
+      "structure": {
+        "path": ".systemc-agent/tools/uhdm-structure.json",
+        "sha256": "a8d8c6fa6b8b61eb4a1f5cfd90c663563eb18cc14ce493612e19c3c92ab53f9e",
+        "status": "passed"
+      }
+    },
+    "uhdm_elab": {
+      "database": ".systemc-agent/tools/surelog-work/slpp_all/surelog.uhdm",
+      "status": "passed",
+      "validation": "Surelog -elabuhdm produced a non-empty binary UHDM database with zero ERROR/FATAL summary"
+    },
+    "uhdm_hier": {
+      "command": [
+        "uhdm-hier",
+        "/workspace/dsc-tlm-project/.systemc-agent/tools/surelog-work/slpp_all/surelog.uhdm",
+        "--line"
+      ],
+      "log": "/workspace/dsc-tlm-project/.systemc-agent/tools/uhdm-hier.log",
+      "returncode": 0,
+      "status": "passed"
+    },
+    "uhdm_lint": {
+      "command": [
+        "uhdm-lint",
+        "/workspace/dsc-tlm-project/.systemc-agent/tools/surelog-work/slpp_all/surelog.uhdm"
+      ],
+      "log": "/workspace/dsc-tlm-project/.systemc-agent/tools/uhdm-lint.log",
+      "returncode": 0,
+      "status": "passed"
+    }
+  },
+  "versions": {
+    "surelog": "[INF:CM0023] Creating log file \"/tmp/tmpucdv38il/slpp_all/surelog.log\".",
+    "uhdm_binding": "eda-uhdm runner schema 1; binding=/opt/conda/envs/uhdm/lib/python3.12/site-packages/uhdm.py; serializer-format=1"
+  }
+}

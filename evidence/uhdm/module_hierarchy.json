@@ -1,0 +1,356 @@
+{
+  "source": "./build/surelog/slpp_all/surelog.uhdm",
+  "designs": [
+    {
+      "module_definitions": [
+        "work@dsc_encoder",
+        "work@dsce_apb",
+        "work@dsce_bpvector",
+        "work@dsce_bypass",
+        "work@dsce_command",
+        "work@dsce_convert",
+        "work@dsce_decision",
+        "work@dsce_engine",
+        "work@dsce_flat_check",
+        "work@dsce_flat_flags",
+        "work@dsce_flatness",
+        "work@dsce_format",
+        "work@dsce_format_buffer",
+        "work@dsce_ich",
+        "work@dsce_ich_candidate",
+        "work@dsce_ich_decision",
+        "work@dsce_ich_history",
+        "work@dsce_input_buffer",
+        "work@dsce_interrupt",
+        "work@dsce_linemem",
+        "work@dsce_mmap",
+        "work@dsce_mpp",
+        "work@dsce_muxword",
+        "work@dsce_pack",
+        "work@dsce_partition",
+        "work@dsce_pps",
+        "work@dsce_predict",
+        "work@dsce_qaunt",
+        "work@dsce_qlevel",
+        "work@dsce_rate",
+        "work@dsce_rate_adjust",
+        "work@dsce_reset",
+        "work@dsce_sad",
+        "work@dsce_slice",
+        "work@dsce_slice_buffer",
+        "work@dsce_slice_mux",
+        "work@dsce_stream_builder",
+        "work@dsce_stream_fifo",
+        "work@dsce_timers",
+        "work@dsce_vlc",
+        "work@gprim_sync2_stage",
+        "work@gprim_sync_stage",
+        "work@gram_bist_1r1w"
+      ],
+      "top_modules": [
+        {
+          "instance_name": "work@dsc_encoder",
+          "definition_name": "work@dsc_encoder",
+          "full_name": "",
+          "children": [
+            {
+              "instance_name": "dsce_apb_inst",
+              "definition_name": "work@dsce_apb",
+              "full_name": "work@dsc_encoder.dsce_apb_inst",
+              "children": []
+            },
+            {
+              "instance_name": "dsce_timers_inst",
+              "definition_name": "work@dsce_timers",
+              "full_name": "work@dsc_encoder.dsce_timers_inst",
+              "children": []
+            },
+            {
+              "instance_name": "dsce_interrupt_inst",
+              "definition_name": "work@dsce_interrupt",
+              "full_name": "work@dsc_encoder.dsce_interrupt_inst",
+              "children": [
+                {
+                  "instance_name": "sync_frame_inst",
+                  "definition_name": "work@gprim_sync2_stage",
+                  "full_name": "work@dsc_encoder.dsce_interrupt_inst.sync_frame_inst",
+                  "children": []
+                },
+                {
+                  "instance_name": "sync_timeout_inst",
+                  "definition_name": "work@gprim_sync2_stage",
+                  "full_name": "work@dsc_encoder.dsce_interrupt_inst.sync_timeout_inst",
+                  "children": []
+                },
+                {
+                  "instance_name": "sync_error_inst",
+                  "definition_name": "work@gprim_sync2_stage",
+                  "full_name": "work@dsc_encoder.dsce_interrupt_inst.sync_error_inst",
+                  "children": []
+                },
+                {
+                  "instance_name": "sync_timer_inst",
+                  "definition_name": "work@gprim_sync2_stage",
+                  "full_name": "work@dsc_encoder.dsce_interrupt_inst.sync_timer_inst",
+                  "children": []
+                }
+              ]
+            },
+            {
+              "instance_name": "dsce_pps_inst",
+              "definition_name": "work@dsce_pps",
+              "full_name": "work@dsc_encoder.dsce_pps_inst",
+              "children": [
+                {
+                  "instance_name": "pps_host_sram_inst",
+                  "definition_name": "work@gram_bist_1r1w",
+                  "full_name": "work@dsc_encoder.dsce_pps_inst.pps_host_sram_inst",
+                  "children": []
+                },
+                {
+                  "instance_name": "pps_engine_sram_inst",
+                  "definition_name": "work@gram_bist_1r1w",
+                  "full_name": "work@dsc_encoder.dsce_pps_inst.pps_engine_sram_inst",
+                  "children": []
+                },
+                {
+                  "instance_name": "sync_update_inst",
+                  "definition_name": "work@gprim_sync2_stage",
+                  "full_name": "work@dsc_encoder.dsce_pps_inst.sync_update_inst",
+                  "children": []
+                }
+              ]
+            },
+            {
+              "instance_name": "dsce_command_inst",
+              "definition_name": "work@dsce_command",
+              "full_name": "work@dsc_encoder.dsce_command_inst",
+              "children": [
+                {
+                  "instance_name": "sync_command_inst",
+                  "definition_name": "work@gprim_sync2_stage",
+                  "full_name": "work@dsc_encoder.dsce_command_inst.sync_command_inst",
+                  "children": []
+                },
+                {
+                  "instance_name": "sync_force_inst",
+                  "definition_name": "work@gprim_sync_stage",
+                  "full_name": "work@dsc_encoder.dsce_command_inst.sync_force_inst",
+                  "children": []
+                },
+                {
+                  "instance_name": "sync_enable_inst",
+                  "definition_name": "work@gprim_sync_stage",
+                  "full_name": "work@dsc_encoder.dsce_command_inst.sync_enable_inst",
+                  "children": []
+                },
+                {
+                  "instance_name": "sync_update_inst",
+                  "definition_name": "work@gprim_sync2_stage",
+                  "full_name": "work@dsc_encoder.dsce_command_inst.sync_update_inst",
+                  "children": []
+                },
+                {
+                  "instance_name": "sync_new_frame_inst",
+                  "definition_name": "work@gprim_sync2_stage",
+                  "full_name": "work@dsc_encoder.dsce_command_inst.sync_new_frame_inst",
+                  "children": []
+                }
+              ]
+            },
+            {
+              "instance_name": "dsce_reset_inst",
+              "definition_name": "work@dsce_reset",
+              "full_name": "work@dsc_encoder.dsce_reset_inst",
+              "children": []
+            },
+            {
+              "instance_name": "dsce_engine_inst",
+              "definition_name": "work@dsce_engine",
+              "full_name": "work@dsc_encoder.dsce_engine_inst",
+              "children": [
+                {
+                  "instance_name": "dsce_pack_inst",
+                  "definition_name": "work@dsce_pack",
+                  "full_name": "work@dsc_encoder.dsce_engine_inst.dsce_pack_inst",
+                  "children": []
+                },
+                {
+                  "instance_name": "dsce_partition_inst",
+                  "definition_name": "work@dsce_partition",
+                  "full_name": "work@dsc_encoder.dsce_engine_inst.dsce_partition_inst",
+                  "children": []
+                },
+                {
+                  "instance_name": "dsce_slice_mux_inst",
+                  "definition_name": "work@dsce_slice_mux",
+                  "full_name": "work@dsc_encoder.dsce_engine_inst.dsce_slice_mux_inst",
+                  "children": []
+                },
+                {
+                  "instance_name": "dsce_bypass_inst",
+                  "definition_name": "work@dsce_bypass",
+                  "full_name": "work@dsc_encoder.dsce_engine_inst.dsce_bypass_inst",
+                  "children": [
+                    {
+                      "instance_name": "sync_bypass_inst",
+                      "definition_name": "work@gprim_sync2_stage",
+                      "full_name": "work@dsc_encoder.dsce_engine_inst.dsce_bypass_inst.sync_bypass_inst",
+                      "children": []
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "invocations": [
+        {
+          "parent_instance_full_name": "",
+          "child_instance_full_name": "work@dsc_encoder.dsce_apb_inst",
+          "parent_definition_name": "work@dsc_encoder",
+          "child_definition_name": "work@dsce_apb"
+        },
+        {
+          "parent_instance_full_name": "",
+          "child_instance_full_name": "work@dsc_encoder.dsce_timers_inst",
+          "parent_definition_name": "work@dsc_encoder",
+          "child_definition_name": "work@dsce_timers"
+        },
+        {
+          "parent_instance_full_name": "",
+          "child_instance_full_name": "work@dsc_encoder.dsce_interrupt_inst",
+          "parent_definition_name": "work@dsc_encoder",
+          "child_definition_name": "work@dsce_interrupt"
+        },
+        {
+          "parent_instance_full_name": "work@dsc_encoder.dsce_interrupt_inst",
+          "child_instance_full_name": "work@dsc_encoder.dsce_interrupt_inst.sync_frame_inst",
+          "parent_definition_name": "work@dsce_interrupt",
+          "child_definition_name": "work@gprim_sync2_stage"
+        },
+        {
+          "parent_instance_full_name": "work@dsc_encoder.dsce_interrupt_inst",
+          "child_instance_full_name": "work@dsc_encoder.dsce_interrupt_inst.sync_timeout_inst",
+          "parent_definition_name": "work@dsce_interrupt",
+          "child_definition_name": "work@gprim_sync2_stage"
+        },
+        {
+          "parent_instance_full_name": "work@dsc_encoder.dsce_interrupt_inst",
+          "child_instance_full_name": "work@dsc_encoder.dsce_interrupt_inst.sync_error_inst",
+          "parent_definition_name": "work@dsce_interrupt",
+          "child_definition_name": "work@gprim_sync2_stage"
+        },
+        {
+          "parent_instance_full_name": "work@dsc_encoder.dsce_interrupt_inst",
+          "child_instance_full_name": "work@dsc_encoder.dsce_interrupt_inst.sync_timer_inst",
+          "parent_definition_name": "work@dsce_interrupt",
+          "child_definition_name": "work@gprim_sync2_stage"
+        },
+        {
+          "parent_instance_full_name": "",
+          "child_instance_full_name": "work@dsc_encoder.dsce_pps_inst",
+          "parent_definition_name": "work@dsc_encoder",
+          "child_definition_name": "work@dsce_pps"
+        },
+        {
+          "parent_instance_full_name": "work@dsc_encoder.dsce_pps_inst",
+          "child_instance_full_name": "work@dsc_encoder.dsce_pps_inst.pps_host_sram_inst",
+          "parent_definition_name": "work@dsce_pps",
+          "child_definition_name": "work@gram_bist_1r1w"
+        },
+        {
+          "parent_instance_full_name": "work@dsc_encoder.dsce_pps_inst",
+          "child_instance_full_name": "work@dsc_encoder.dsce_pps_inst.pps_engine_sram_inst",
+          "parent_definition_name": "work@dsce_pps",
+          "child_definition_name": "work@gram_bist_1r1w"
+        },
+        {
+          "parent_instance_full_name": "work@dsc_encoder.dsce_pps_inst",
+          "child_instance_full_name": "work@dsc_encoder.dsce_pps_inst.sync_update_inst",
+          "parent_definition_name": "work@dsce_pps",
+          "child_definition_name": "work@gprim_sync2_stage"
+        },
+        {
+          "parent_instance_full_name": "",
+          "child_instance_full_name": "work@dsc_encoder.dsce_command_inst",
+          "parent_definition_name": "work@dsc_encoder",
+          "child_definition_name": "work@dsce_command"
+        },
+        {
+          "parent_instance_full_name": "work@dsc_encoder.dsce_command_inst",
+          "child_instance_full_name": "work@dsc_encoder.dsce_command_inst.sync_command_inst",
+          "parent_definition_name": "work@dsce_command",
+          "child_definition_name": "work@gprim_sync2_stage"
+        },
+        {
+          "parent_instance_full_name": "work@dsc_encoder.dsce_command_inst",
+          "child_instance_full_name": "work@dsc_encoder.dsce_command_inst.sync_force_inst",
+          "parent_definition_name": "work@dsce_command",
+          "child_definition_name": "work@gprim_sync_stage"
+        },
+        {
+          "parent_instance_full_name": "work@dsc_encoder.dsce_command_inst",
+          "child_instance_full_name": "work@dsc_encoder.dsce_command_inst.sync_enable_inst",
+          "parent_definition_name": "work@dsce_command",
+          "child_definition_name": "work@gprim_sync_stage"
+        },
+        {
+          "parent_instance_full_name": "work@dsc_encoder.dsce_command_inst",
+          "child_instance_full_name": "work@dsc_encoder.dsce_command_inst.sync_update_inst",
+          "parent_definition_name": "work@dsce_command",
+          "child_definition_name": "work@gprim_sync2_stage"
+        },
+        {
+          "parent_instance_full_name": "work@dsc_encoder.dsce_command_inst",
+          "child_instance_full_name": "work@dsc_encoder.dsce_command_inst.sync_new_frame_inst",
+          "parent_definition_name": "work@dsce_command",
+          "child_definition_name": "work@gprim_sync2_stage"
+        },
+        {
+          "parent_instance_full_name": "",
+          "child_instance_full_name": "work@dsc_encoder.dsce_reset_inst",
+          "parent_definition_name": "work@dsc_encoder",
+          "child_definition_name": "work@dsce_reset"
+        },
+        {
+          "parent_instance_full_name": "",
+          "child_instance_full_name": "work@dsc_encoder.dsce_engine_inst",
+          "parent_definition_name": "work@dsc_encoder",
+          "child_definition_name": "work@dsce_engine"
+        },
+        {
+          "parent_instance_full_name": "work@dsc_encoder.dsce_engine_inst",
+          "child_instance_full_name": "work@dsc_encoder.dsce_engine_inst.dsce_pack_inst",
+          "parent_definition_name": "work@dsce_engine",
+          "child_definition_name": "work@dsce_pack"
+        },
+        {
+          "parent_instance_full_name": "work@dsc_encoder.dsce_engine_inst",
+          "child_instance_full_name": "work@dsc_encoder.dsce_engine_inst.dsce_partition_inst",
+          "parent_definition_name": "work@dsce_engine",
+          "child_definition_name": "work@dsce_partition"
+        },
+        {
+          "parent_instance_full_name": "work@dsc_encoder.dsce_engine_inst",
+          "child_instance_full_name": "work@dsc_encoder.dsce_engine_inst.dsce_slice_mux_inst",
+          "parent_definition_name": "work@dsce_engine",
+          "child_definition_name": "work@dsce_slice_mux"
+        },
+        {
+          "parent_instance_full_name": "work@dsc_encoder.dsce_engine_inst",
+          "child_instance_full_name": "work@dsc_encoder.dsce_engine_inst.dsce_bypass_inst",
+          "parent_definition_name": "work@dsce_engine",
+          "child_definition_name": "work@dsce_bypass"
+        },
+        {
+          "parent_instance_full_name": "work@dsc_encoder.dsce_engine_inst.dsce_bypass_inst",
+          "child_instance_full_name": "work@dsc_encoder.dsce_engine_inst.dsce_bypass_inst.sync_bypass_inst",
+          "parent_definition_name": "work@dsce_bypass",
+          "child_definition_name": "work@gprim_sync2_stage"
+        }
+      ]
+    }
+  ]
+}

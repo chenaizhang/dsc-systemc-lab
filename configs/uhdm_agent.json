@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "case": "dsc_encoder",
+  "top": "dsc_encoder",
+  "_display_path": "configs/uhdm_agent.json",
+  "uhdm": {
+    "structure_ir": "../evidence/uhdm/structure_ir.json",
+    "expected_structure_fingerprint": "657b374ce28ca0ff42d970aa31249efcb1fb93935340b43787b9030f734ffc0a"
+  },
+  "behavior": {
+    "source_root": "../inputs/private/rtl",
+    "sources": [
+      {"module": "dsc_encoder", "path": "dsc_encoder.sv", "sha256": "8aacee324e2176bc4e2a40ce48e6045a91d5d9c9ac0bbecbbeb1c178318c5e04"},
+      {"module": "dsce_apb", "path": "dsce_apb.sv", "sha256": "7cc36b633a641f316f8eb9aaddbdadd7d0589367bd714b01014c3f5e31360274"},
+      {"module": "dsce_bypass", "path": "dsce_bypass.sv", "sha256": "0f0553e1eb36d12604401d69a027ef4dae2bda74e83b66fb57532bf22c4b1c21"},
+      {"module": "dsce_bypass____gprim_sync2_stage", "path": "dsce_bypass.sv", "sha256": "0f0553e1eb36d12604401d69a027ef4dae2bda74e83b66fb57532bf22c4b1c21"},
+      {"module": "dsce_command", "path": "dsce_command.sv", "sha256": "040bd3de7ec0b2b8ada7e93c78034200349c43db70e3cdd16585efe470dfcf27"},
+      {"module": "dsce_command____gprim_sync2_stage", "path": "dsce_command.sv", "sha256": "040bd3de7ec0b2b8ada7e93c78034200349c43db70e3cdd16585efe470dfcf27"},
+      {"module": "dsce_command____gprim_sync_stage", "path": "dsce_command.sv", "sha256": "040bd3de7ec0b2b8ada7e93c78034200349c43db70e3cdd16585efe470dfcf27"},
+      {"module": "dsce_engine", "path": "dsce_engine.sv", "sha256": "748897395b956d1eaa61e600c4a6d75332b9be172065ce55ef7074b0d5c523c3"},
+      {"module": "dsce_interrupt", "path": "dsce_interrupt.sv", "sha256": "5b96b7579e584fb08434b3d2eb8009ffff1a6609320b8a6c9fff049f858e55dc"},
+      {"module": "dsce_interrupt____gprim_sync2_stage", "path": "dsce_interrupt.sv", "sha256": "5b96b7579e584fb08434b3d2eb8009ffff1a6609320b8a6c9fff049f858e55dc"},
+      {"module": "dsce_pack", "path": "dsce_pack.sv", "sha256": "d119d4c9e33939e91b2e86e9d2804f51181e50f1b694d7e5f41608245490d20d"},
+      {"module": "dsce_partition", "path": "dsce_partition.sv", "sha256": "f6ba653970854b402fbe3a15d7a61d0e89abb6f11f753f42eaa87defb5bcf09e"},
+      {"module": "dsce_pps", "path": "dsce_pps.sv", "sha256": "38cce7369e22630a81a07b6795876b3fa5c4d39c97f54bacccc34c321bcdab38"},
+      {"module": "dsce_pps____gprim_sync2_stage", "path": "dsce_pps.sv", "sha256": "38cce7369e22630a81a07b6795876b3fa5c4d39c97f54bacccc34c321bcdab38"},
+      {"module": "dsce_pps____gram_bist_1r1w", "path": "dsce_pps.sv", "sha256": "38cce7369e22630a81a07b6795876b3fa5c4d39c97f54bacccc34c321bcdab38"},
+      {"module": "dsce_reset", "path": "dsce_reset.sv", "sha256": "11ef937509b6febed79cae2bc8b9c86f20c776f8ff0dfb2c22c6d5c65c7fa1f1"},
+      {"module": "dsce_slice_mux", "path": "dsce_slice_mux.sv", "sha256": "0b751fe315b303bbd65ef11a2cdf5ac153058cf0f1de94bd7916583ef743f1f6"},
+      {"module": "dsce_timers", "path": "dsce_timers.sv", "sha256": "cdba30798b22fa6d84bf9ca30594bb63acdea51abd869732742431539e67e251"}
+    ]
+  },
+  "systemc": {
+    "seed_files": []
+  },
+  "runtime_probe": {
+    "candidate_header": "dsc_cycle_model.hpp",
+    "top_cpp_type": "dsc_encoder",
+    "timeout_seconds": 300
+  },
+  "systemc_clang": {
+    "candidate_header": "dsc_cycle_model.hpp",
+    "top_cpp_type": "dsc_encoder",
+    "image": "docker.io/rseac/systemc-clang:clang-15.0.6",
+    "container_executable": "/systemc-clang-build/systemc-clang",
+    "container_systemc_include": "/opt/systemc-2.3.3/include",
+    "container_clang_resource_include": "/opt/clang-15.0.6/lib/clang/15.0.6/include",
+    "timeout_seconds": 600,
+    "analysis_targets": [
+      {"module": "dsc_encoder", "cpp_type": "dsc_encoder"},
+      {"module": "dsce_apb", "cpp_type": "dsce_apb"},
+      {"module": "dsce_bypass", "cpp_type": "dsce_bypass"},
+      {"module": "dsce_command", "cpp_type": "dsce_command"},
+      {"module": "dsce_engine", "cpp_type": "dsce_engine"},
+      {"module": "dsce_interrupt", "cpp_type": "dsce_interrupt"},
+      {"module": "dsce_pack", "cpp_type": "dsce_pack"},
+      {"module": "dsce_partition", "cpp_type": "dsce_partition"},
+      {"module": "dsce_pps", "cpp_type": "dsce_pps"},
+      {"module": "dsce_reset", "cpp_type": "dsce_reset"},
+      {"module": "dsce_slice_mux", "cpp_type": "dsce_slice_mux"},
+      {"module": "dsce_timers", "cpp_type": "dsce_timers"}
+    ],
+    "expected_processes": []
+  }
+}

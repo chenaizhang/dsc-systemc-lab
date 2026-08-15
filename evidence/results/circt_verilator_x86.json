@@ -1,0 +1,74 @@
+{
+  "format": "llm4eda-staged-circt-systemc-x86-verification-v1",
+  "verified_at": "2026-08-15",
+  "host": {
+    "address": "10.203.255.52",
+    "os": "Ubuntu Linux",
+    "architecture": "x86_64"
+  },
+  "run_id": "x86-20260815-final4",
+  "status": "completed_with_verilator_fallback",
+  "pass": true,
+  "native_circt_systemc_complete": false,
+  "verilator_fallback_ready": true,
+  "functional_equivalence": "not_run_no_shared_stimulus_in_verilog_dsc_bundle",
+  "tools": {
+    "circt": "firtool-1.155.0 / LLVM 24.0.0git / Slang 11.0.0",
+    "verilator": "5.032",
+    "systemc": "3.0.2",
+    "cxx": "GCC 15.2.0"
+  },
+  "input": {
+    "hierarchy_sha256": "1bec883721ce6d3cc2b530310c8df5e1d5bc420dc92eff42f42bbc1308d43558",
+    "surelog_sha256": "02d106c9bcb66befc13cade3768ea7a6b65bf795ea993a27c43ba7ba274415df",
+    "provided_hierarchy_nodes": 25,
+    "surelog_elaborated_instances": 261,
+    "hierarchy_complete": false
+  },
+  "core_ir": {
+    "sha256": "34deaac06a1d22b5c5635151ff469575624bc43bde05931237e2bc8f2c70ec24",
+    "bytes": 1936280,
+    "modules": 50,
+    "instances": 89,
+    "comb_operations": 15346,
+    "seq_operations": 540,
+    "llhd_operations": 589
+  },
+  "normalized_ir": {
+    "sha256": "af1faf575c18042b10f9ca1b74afda69cdfc7d250c916994073c5a5b8bbfc5af",
+    "bytes": 1336320
+  },
+  "circt_failure": {
+    "stage": "hw_to_systemc",
+    "kind": "unsupported_llhd_conversion",
+    "operation": "llhd.coroutine",
+    "symbol_from_log": "dsce_defs_pkg::dsce_min_sad4"
+  },
+  "verilator_models": [
+    {
+      "module": "dsc_encoder",
+      "header_sha256": "d1821c621f597c5fed52149925d15736ff52533e3e5cbd21ff723c8e1c829540",
+      "header_bytes": 4646,
+      "library_sha256": "8e1f3a3e3f5a55e888d1b6b7fa95958aaeb6d6422bdd83c821285738380d2944",
+      "library_bytes": 8692616,
+      "circt_verilator_ports_match": true
+    },
+    {
+      "module": "dsce_engine",
+      "header_sha256": "f8f5b3d1c6211fa6860c92bf25c24ba900c776702a594d1c8c667319e2c19920",
+      "header_bytes": 4660,
+      "library_sha256": "f912756d4979b583fc7bee959795409aa67a1c46e5c7585239904ada2bf4c4e3",
+      "library_bytes": 8922666,
+      "circt_verilator_ports_match": true
+    },
+    {
+      "module": "dsce_apb",
+      "header_sha256": "83a037d76c8d8e2bd674eed21ebb8b97430b8259715f0ad602282b7c5dd5c4a4",
+      "header_bytes": 3952,
+      "library_sha256": "793e60dbb33fc31c3aa4a9360e7c13b9da9487e2ecf0722bf6a4afc237de3be6",
+      "library_bytes": 198068,
+      "circt_verilator_ports_match": true
+    }
+  ],
+  "claim_boundary": "结构、CIRCT core IR、失败 operation 和 Verilator 黑盒构建已验证；没有共同 stimulus，未验证 DSC 功能等价"
+}

@@ -1,0 +1,49 @@
+{
+  "format": "llm4eda-dsc-function-tlm-contract",
+  "version": "1.0.0",
+  "status": "vesa_reference_adapter_verified_company_vectors_missing",
+  "abstraction": "single-top loosely-timed TLM-2.0 pure function model",
+  "top": "dsc_function_tlm::DscFunctionTlm",
+  "interfaces": {
+    "apb": "32-bit TLM target compatible with the data-flow SystemC control boundary",
+    "pixel_stream_in": "192-bit TLM target using dsc_tlm::PixelStreamExtension",
+    "bitstream_out": "192-bit TLM initiator using dsc_tlm::EncodedStreamExtension"
+  },
+  "forbidden_internal_structure": [
+    "child SC_MODULE",
+    "sc_fifo",
+    "SC_METHOD",
+    "SC_THREAD",
+    "SC_CTHREAD",
+    "clock-edge behavior",
+    "RTL handshake state machines"
+  ],
+  "algorithm_adapter": "dsc_function_tlm::VesaReferenceCodec::encode backed by the VESA DSC 1.67 C model",
+  "qualified_profile": {
+    "pixel_format": "RGB 4:4:4",
+    "bits_per_component": 8,
+    "bits_per_pixel": 8,
+    "picture": "192x108",
+    "slices": "2 x 96x108",
+    "comparison": "VESA CLI payload == C++ adapter payload == single-top TLM payload, byte exact"
+  },
+  "golden_policy": {
+    "default": "require is_bit_exact_golden() == true",
+    "missing_codec": "return TLM_GENERIC_ERROR_RESPONSE and emit no bitstream",
+    "non_golden_codec": "reject in default mode and emit no bitstream",
+    "test_codec": "allowed only with require_golden_codec=false; outputs remain algorithm_placeholder=true",
+    "vesa_adapter": "approval is an explicit constructor argument and is enabled only inside a passed differential run"
+  },
+  "evidence": [
+    "../skill_run/contracts/architecture.yaml",
+    "../skill_run/contracts/conflicts.yaml",
+    "../skill_run/model/implementation-handoff.yaml",
+    "x86_reference_differential.json"
+  ],
+  "verification_order": [
+    "golden software codec against authoritative DSC vectors",
+    "data-flow SystemC against golden software codec with identical frame/PPS inputs",
+    "mixed SystemC/Verilator substitutions against the same golden outputs",
+    "all-Verilator or repaired RTL against the same golden outputs"
+  ]
+}

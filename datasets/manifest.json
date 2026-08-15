@@ -1,0 +1,18 @@
+{
+  "format": "dscflow-golden-dataset-manifest",
+  "version": "1.0.0",
+  "status": "vesa_reference_ready_company_vectors_missing",
+  "required_result_sets": {
+    "authoritative_vectors": "authoritative_vectors.results.json",
+    "software_function": "software_function.results.json",
+    "dataflow_systemc": "dataflow_systemc.results.json",
+    "hybrid_verilator": "hybrid_verilator.results.json",
+    "rtl_verilator": "rtl_verilator.results.json"
+  },
+  "comparison": "same stimulus/PPS SHA-256, status and bitstream SHA-256",
+  "company_vectors_present": false,
+  "synthetic_reference": {
+    "id": "rgb444-8bpc-8bpp-192x108-two-slices",
+    "report": "../evidence/results/vesa_function_tlm_x86.json"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "format": "llm4eda-dsc-reference-differential",
+  "version": "1.0.0",
+  "verified_at": "2026-08-13T00:15:00+08:00",
+  "host_architecture": "x86_64",
+  "environment": {
+    "gcc": "15.2.0",
+    "systemc": "3.0.2"
+  },
+  "source": {
+    "name": "VESA DSC C reference model 1.67",
+    "release": "DSC_model_20211213",
+    "archive_sha256": "f2339edb1d5603d2f3ca5fbb6ca089b18ff73c43088352fa7c3b59df03e3ee2c"
+  },
+  "case": {
+    "id": "rgb444-8bpc-8bpp-192x108-two-slices",
+    "input_sha256": "d54ae9b32d303a4e1423160bc88b5ca854c24e272385ca63bfbdf9c5bb48b7f3",
+    "reference_sha256": "375488877108b8fcc830273423aa121ebaf19e16dbf3d3fc3b72215fc679f211",
+    "reference_bytes_with_dscf_and_pps": 20868,
+    "compressed_payload_bytes": 20736
+  },
+  "checks": {
+    "vesa_cli_returncode": 0,
+    "cpp_adapter_byte_exact": true,
+    "single_top_tlm_byte_exact": true,
+    "tlm_output_placeholder": false,
+    "function_tlm_contract_ctest": "1/1 passed"
+  },
+  "pass": true,
+  "claim_boundary": "This qualifies the RGB 4:4:4 adapter path against the official VESA CLI. The delivered company archive still contains no company input/PPS/expected bitstream vector."
+}

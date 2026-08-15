@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "case": "verilog_dsc",
+  "top": "dsc_encoder",
+  "skills": {
+    "required": [
+      "eda-tool-assistant",
+      "modeling-systemverilog",
+      "modeling-systemc-tlm"
+    ],
+    "source": {
+      "repository": "https://github.com/trv3wood/eda-sandbox.git",
+      "branch": "dev"
+    },
+    "check_policy": "init_once_then_use_cached_state"
+  },
+  "inputs": {
+    "root_env": "VERILOG_DSC_ROOT",
+    "default_root": "inputs/private/rtl",
+    "filelist": "surelog.f",
+    "hierarchy_json": "uhdm_module_hierarchy.json",
+    "surelog_log": "build/surelog/slpp_all/surelog.log"
+  },
+  "expected": {
+    "hierarchy_sha256": "1bec883721ce6d3cc2b530310c8df5e1d5bc420dc92eff42f42bbc1308d43558",
+    "definition_count": 43,
+    "provided_hierarchy_nodes": 25,
+    "surelog_instances": 261
+  },
+  "frontend": {
+    "include_dirs": [
+      "."
+    ],
+    "timescale": "1ns/1ps",
+    "sroa": false,
+    "exclude_uninstantiated_sources": [
+      {
+        "source": "dsce_quant.sv",
+        "definition": "dsce_qaunt",
+        "reason": "该未实例化定义使用未声明的 tDSC_SAMPLE 和 kDSC_SAMPLE_INIT；全量 frontend 仍单独执行并保留原始失败日志"
+      }
+    ]
+  },
+  "circt": {
+    "timeout_seconds": 600
+  },
+  "verilator": {
+    "timeout_seconds": 900,
+    "build_jobs": 2,
+    "blackbox_tops": [
+      "dsc_encoder",
+      "dsce_engine",
+      "dsce_apb"
+    ],
+    "replacement_order": [
+      "dsce_apb",
+      "dsce_engine",
+      "dsc_encoder"
+    ]
+  }
+}
