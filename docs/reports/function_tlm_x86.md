@@ -73,7 +73,7 @@ agent 看着 RTL 自行推理出来的；UHDM/systemc-clang 仍用于后续结�
 
 ## 5. 测试过程
 
-所有正式编译和运行均在服务器 `10.203.255.52` 的 x86_64 Linux 环境完成。
+所有正式编译和运行均在隔离的 x86_64 Linux 验证服务器完成。
 
 1. 下载官方 source model 并校验 SHA-256；
 2. 用 GCC 15.2.0 编译 VESA 原始 C CLI；

@@ -25,7 +25,7 @@
 | CIRCT 原生 SystemC | 未闭环 | 卡在 `llhd.coroutine`，不能说已生成完整 SC |
 | Verilator-SystemC | x86 已跑单体及 7 模块网络 | 共享 stimulus 下，拆分结构与单体逐周期一致 |
 | Agent cycle SystemC | `CycleApb` 已真实替换 | 与 Verilator APB 网络逐周期一致；其余模块仍为黑盒 |
-| RTL vs VESA golden | 功能门禁失败 | 三路 RTL/cycle 输出 7,104 字节，golden 为 20,736 字节 |
+| RTL vs VESA golden | 功能门禁失败 | 安全 overlay 后三路输出 20,232 字节，golden 为 20,736 字节；首差异 byte 254 |
 
 ## 仓库结构
 
@@ -89,6 +89,10 @@ bash scripts/run_hybrid_differential_verification.sh
 ```
 
 结果解读见 [中文完整报告](docs/reports/hybrid_differential_x86.md)。
+
+当前 format/stream 排障已经把原来的多个确认项压缩为一个资料请求：提供正式 last/flush 实现，
+或一个 slice 连续两行的正确 VCS 边界波形。详见
+[最小资料请求](docs/blockers/format_stream_contract_questions_zh.md)。
 
 ## 结果边界
 

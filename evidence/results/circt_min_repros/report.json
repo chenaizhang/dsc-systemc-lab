@@ -1,0 +1,32 @@
+{
+  "format": "dscflow-circt-min-repros-v1",
+  "verified_at": "2026-08-15",
+  "host": {
+    "address": "x86-validation-server",
+    "architecture": "x86_64"
+  },
+  "circt": "firtool-1.155.0 / LLVM 24.0.0git / Slang 11.0.0",
+  "cases": [
+    {
+      "id": "sv-package-task-output",
+      "source": "tests/fixtures/circt/llhd_coroutine_task.sv",
+      "frontend": "pass",
+      "core_operation": "llhd.coroutine",
+      "hw_to_systemc": "fail",
+      "first_error": "failed to legalize operation 'llhd.coroutine'"
+    },
+    {
+      "id": "equivalent-sv-function-control",
+      "source": "tests/fixtures/circt/function_control.sv",
+      "frontend": "pass",
+      "hw_to_systemc": "pass",
+      "systemc_cpp_emission": "fail",
+      "unsupported_operations": [
+        "systemc.convert",
+        "comb.icmp",
+        "comb.mux"
+      ]
+    }
+  ],
+  "conclusion": "package task coroutine is the first conversion blocker; replacing it with an equivalent function exposes independent SystemC emission gaps"
+}

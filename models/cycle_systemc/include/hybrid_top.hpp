@@ -4,6 +4,8 @@
 
 #include "Vdsce_command.h"
 #include "Vdsce_engine.h"
+#include "Vdsce_engine___024root.h"
+#include "Vdsce_engine_dsce_slice.h"
 #include "Vdsce_interrupt.h"
 #include "Vdsce_pps.h"
 #include "Vdsce_reset.h"
@@ -15,6 +17,30 @@
 // blocks remain explicit Verilator-SystemC black boxes in this milestone.
 template <typename ApbModel>
 struct HybridTop : sc_core::sc_module {
+    struct EngineProbe {
+        bool pack_valid = false;
+        bool pack_ready = false;
+        bool pack_line = false;
+        std::uint8_t partition_valid = 0;
+        std::uint8_t partition_last = 0;
+        std::uint8_t slice_input_ready = 0;
+        std::uint8_t csc_valid = 0;
+        std::uint8_t csc_last = 0;
+        std::uint8_t slice_buffer_valid = 0;
+        std::uint8_t slice_buffer_last = 0;
+        std::uint8_t flatness_valid = 0;
+        std::uint8_t flatness_last = 0;
+        std::uint8_t predict_valid = 0;
+        std::uint8_t predict_last = 0;
+        std::uint8_t slice_output_valid = 0;
+        std::uint8_t slice_output_ready = 0;
+        std::uint8_t slice_output_last = 0;
+        bool mux_valid = false;
+        bool mux_ready = false;
+        bool mux_line = false;
+        bool mux_frame = false;
+    };
+
     sc_core::sc_in<bool> apb_clk{"apb_clk"};
     sc_core::sc_in<bool> apb_select{"apb_select"};
     sc_core::sc_in<bool> apb_enable{"apb_enable"};
@@ -210,6 +236,40 @@ struct HybridTop : sc_core::sc_module {
     bool pps_update_pending() const { return axi_pps_update_.read(); }
     bool new_frame_pending() const { return axi_new_frame_.read(); }
     sc_dt::sc_bv<296> pps_config() const { return cfg_pps_.read(); }
+    EngineProbe engine_probe() const
+    {
+        EngineProbe probe;
+        const auto* root = engine->rootp;
+        probe.pack_valid = root->dsce_engine__DOT__i_valid_pack;
+        probe.pack_ready = root->dsce_engine__DOT__i_ready_pack;
+        probe.pack_line = root->dsce_engine__DOT__i_line_pack;
+        probe.partition_valid = root->dsce_engine__DOT__i_valid_part;
+        probe.partition_last = root->dsce_engine__DOT__i_last_part;
+        probe.slice_output_valid = root->dsce_engine__DOT__i_axi_ready;
+        probe.slice_output_ready = root->dsce_engine__DOT__i_axi_accept;
+        probe.mux_valid = root->dsce_engine__DOT__i_axi_tvalid_mux;
+        probe.mux_ready = root->dsce_engine__DOT__dsce_slice_mux_inst__DOT__i_ready_in;
+        probe.mux_line = root->dsce_engine__DOT__i_axi_tline_mux;
+        probe.mux_frame = root->dsce_engine__DOT__i_axi_tframe_mux;
+        const Vdsce_engine_dsce_slice* slices[4] = {
+            root->__PVT__dsce_engine__DOT__gen_slice__BRA__0__KET____DOT__dsce_slice_inst,
+            root->__PVT__dsce_engine__DOT__gen_slice__BRA__1__KET____DOT__dsce_slice_inst,
+            root->__PVT__dsce_engine__DOT__gen_slice__BRA__2__KET____DOT__dsce_slice_inst,
+            root->__PVT__dsce_engine__DOT__gen_slice__BRA__3__KET____DOT__dsce_slice_inst};
+        for (unsigned index = 0; index < 4; ++index) {
+            probe.slice_input_ready |= static_cast<std::uint8_t>(slices[index]->axi_ready_in) << index;
+            probe.slice_output_last |= static_cast<std::uint8_t>(slices[index]->axi_last_out) << index;
+            probe.csc_valid |= static_cast<std::uint8_t>(slices[index]->i_valid_csc) << index;
+            probe.csc_last |= static_cast<std::uint8_t>(slices[index]->i_last_csc) << index;
+            probe.slice_buffer_valid |= static_cast<std::uint8_t>(slices[index]->i_valid_slb) << index;
+            probe.slice_buffer_last |= static_cast<std::uint8_t>(slices[index]->i_last_slb) << index;
+            probe.flatness_valid |= static_cast<std::uint8_t>(slices[index]->i_valid_fd) << index;
+            probe.flatness_last |= static_cast<std::uint8_t>(slices[index]->i_last_fd) << index;
+            probe.predict_valid |= static_cast<std::uint8_t>(slices[index]->i_valid_pd) << index;
+            probe.predict_last |= static_cast<std::uint8_t>(slices[index]->i_last_pd) << index;
+        }
+        return probe;
+    }
 
 private:
     sc_core::sc_signal<bool> apb_reset_n_{"apb_reset_n_internal"};

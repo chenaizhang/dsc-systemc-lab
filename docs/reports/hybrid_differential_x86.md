@@ -67,11 +67,33 @@ VESA CLI 先生成 DSCF、128 字节 PPS 和 20,736 字节压缩 payload。Funct
 | 单体 RTL-SystemC 可运行 | 通过 | 进入编码态并产生输出 |
 | 拆分模块网络 vs 单体 RTL | 通过 | 顶层接口逐周期一致，最终字节一致 |
 | `CycleApb` 混合替换 vs 拆分网络 | 通过 | 无首差异周期，最终字节一致 |
-| RTL-SystemC vs VESA golden | **失败** | 7,104 字节 vs 20,736 字节 |
+| RTL-SystemC vs VESA golden | **失败** | 20,304 字节 vs 20,736 字节 |
 
-三路 RTL/cycle 输出均为 7,104 字节且 SHA-256 相同。独立 golden 为 20,736 字节。RTL 的第一个 24 字节输出与 golden 完全相同，但从字节 24 开始出现差异；296 个 192-bit 输出字中有 148 对成对重复，且 250,000 个 drain 周期后仍未达到目标长度。接口日志还显示输出帧标志出现 1 次，但输出行结束标志为 0 次。
+三路 RTL/cycle 输出均为 20,304 字节且 SHA-256 相同。独立 golden 为 20,736 字节。RTL 的第一个
+24 字节输出与 golden 完全相同，但从字节 24 开始出现差异；846 个 192-bit 输出字恰好组成 423
+对重复字。接口日志显示输出帧标志出现 1 次，但输出行结束标志为 0 次。
 
 因此当前失败不是模块拆分连错，也不是 `CycleApb` 替换引入的，因为单体、拆分和混合三路行为完全一致。首个可疑模块边界已收敛到三路共同保留的 `dsce_engine` 输出路径：它没有产生任何完整行标志，并在目标码流完成前停止继续输出。更深一层仍可能是 engine 内部 slice/stream 控制，或仿真 shim 与专有 SRAM 的精确时序差异；这是基于接口证据的定位，不冒充已证明的单行 RTL 根因。Verilator 只能复现参考 RTL 行为，不能把这个结果当成算法 golden。
+
+### 5.1 后续独立时钟与 engine 打桩结果
+
+旧版报告中的 7,104 字节来自把 AXI 与 DSC 时钟设成 1:1，不符合用户指南对独立时钟域和吞吐的约束。按
+`Slices Per Line = 4/3 × (FPIXEL_IN/FDSC_CLK)` 反推，本配置最低需要 `dsc_clk:axi_clk=8:3`；
+实测 3:1 与 4:1 已达到同一吞吐平台，后续默认使用 3:1。
+
+修正时钟后在 pack、partition、CSC、slice buffer、flatness、predict、slice output 和 mux 边界
+打桩，确认前六段输入数量和 108 条 line-last 均完整。原始 RTL 另有 bypass 最后一个字重复发送问题；
+通过不修改私有源码的诊断 overlay 消除后，首个异常进一步定位到
+`dsce_format/stream/format_buffer`。
+
+诊断性补充 chunk 边界并修正 slice-mux 的最后一拍重复后，最终结果为：RTL 20,232 字节、golden
+20,736 字节，前 254 字节一致，byte 254 首次不同；两条 slice 分别只有 1,693/1,680 个 muxword
+和 105/105 个 output-last，顶层只有 210 个 line marker，预期为 1,728/1,728、108/108 和 216。
+完整计数、源码证据和结论见 `docs/reports/engine_localization_x86.md`。该 overlay 不是正式修复。
+
+时钟比例、同步 RAM 一拍读、启动门控和重复传输点均已由规范或实验自行闭合。当前唯一需要的外部
+证据是正式 last/flush 源码，或一个 slice 连续两行的正确 VCS 边界波形。按端口名推断恢复整条
+last 链的版本虽然能编译运行，但只得到 14,928 字节和 155 个 line marker，已被 golden 门禁拒绝。
 
 ## 6. 结论
 
@@ -90,4 +112,7 @@ VESA CLI 先生成 DSCF、128 字节 PPS 和 20,736 字节压缩 payload。Funct
 - 其余 6 个模块已经被非 Verilator 的 cycle SystemC 替换；
 - 公司图像及 PPS 配置已经验证。
 
-机器可读结果位于 `evidence/results/hybrid_differential_x86.json`。每次运行还会生成按状态变化和有效输出采样的 `evidence/results/hybrid_differential_module_interface_trace.csv`；一键入口为 `scripts/run_hybrid_differential_verification.sh`。
+原始机器结果位于 `evidence/results/hybrid_differential_x86.json`；后续定位结果位于
+`evidence/results/repaired_rtl_differential_x86.json`，名称中的 repaired 仅表示运行时诊断 overlay。
+每次运行还会生成模块接口和 engine 内部边界 CSV；入口分别为
+`scripts/run_hybrid_differential_verification.sh` 和 `scripts/run_repaired_rtl_verification.sh`。

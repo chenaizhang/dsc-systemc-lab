@@ -13,7 +13,7 @@
   },
   "source_function_model": {
     "pass": true,
-    "report": "<x86-workspace>/dsc-systemc-lab/.work/runs/hybrid-differential/golden/report.json",
+    "report": "<x86-workspace>/dsc-systemc-lab/.work/runs/repaired-rtl-differential/golden/report.json",
     "case": {
       "id": "rgb444-8bpc-8bpp-192x108-two-slices",
       "input_sha256": "d54ae9b32d303a4e1423160bc88b5ca854c24e272385ca63bfbdf9c5bb48b7f3",
@@ -65,10 +65,10 @@
   },
   "runtime": {
     "format": "dsc-hybrid-differential-runtime-v1",
-    "cycles": 9972,
+    "cycles": 10511,
     "clocking": {
-      "axi_cycles": 9972,
-      "dsc_cycles": 29916,
+      "axi_cycles": 10511,
+      "dsc_cycles": 31533,
       "dsc_to_axi": "3:1"
     },
     "input": {
@@ -87,9 +87,9 @@
     },
     "drain_target_reached": false,
     "drain_quiescent": true,
-    "module_interface_trace": "<x86-workspace>/dsc-systemc-lab/.work/runs/hybrid-differential/outputs/module_interface_trace.csv",
-    "engine_boundary_trace": "<x86-workspace>/dsc-systemc-lab/.work/runs/hybrid-differential/outputs/engine_boundary_trace.csv",
-    "engine_dsc_boundary_trace": "<x86-workspace>/dsc-systemc-lab/.work/runs/hybrid-differential/outputs/engine_dsc_boundary_trace.csv",
+    "module_interface_trace": "<x86-workspace>/dsc-systemc-lab/.work/runs/repaired-rtl-differential/outputs/module_interface_trace.csv",
+    "engine_boundary_trace": "<x86-workspace>/dsc-systemc-lab/.work/runs/repaired-rtl-differential/outputs/engine_boundary_trace.csv",
+    "engine_dsc_boundary_trace": "<x86-workspace>/dsc-systemc-lab/.work/runs/repaired-rtl-differential/outputs/engine_dsc_boundary_trace.csv",
     "engine_boundaries": {
       "input_accept": 5184,
       "pack_accept": 5184,
@@ -155,33 +155,33 @@
       ],
       "slice_output_accept": [
         1693,
-        0,
+        1680,
         0,
         0
       ],
       "slice_output_last": [
-        0,
-        0,
+        105,
+        105,
         0,
         0
       ],
-      "mux_accept": 1693,
-      "mux_line": 0,
+      "mux_accept": 3163,
+      "mux_line": 210,
       "mux_frame": 1,
-      "top_accept": 846
+      "top_accept": 843
     },
     "output_sidebands": {
-      "line_markers": 0,
+      "line_markers": 210,
       "frame_markers": 1
     },
     "bytes": {
       "golden": 20736,
-      "rtl_monolithic": 20304,
-      "rtl_split": 20304,
-      "hybrid_cycle_apb": 20304
+      "rtl_monolithic": 20232,
+      "rtl_split": 20232,
+      "hybrid_cycle_apb": 20232
     },
     "bitstream_first_mismatch": {
-      "rtl_vs_golden": 24,
+      "rtl_vs_golden": 254,
       "split_vs_rtl": null,
       "hybrid_vs_split": null
     },
@@ -190,34 +190,34 @@
       "hybrid_vs_split": null
     }
   },
-  "module_interface_trace": "<x86-workspace>/dsc-systemc-lab/.work/runs/hybrid-differential/outputs/module_interface_trace.csv",
+  "module_interface_trace": "<x86-workspace>/dsc-systemc-lab/.work/runs/repaired-rtl-differential/outputs/module_interface_trace.csv",
   "outputs": {
     "golden": {
       "bytes": 20736,
       "sha256": "1e6c274d866a2777b854ea9769335a3dabcdef0b62cab4b0b3c47732ed702ca0",
-      "path": "<x86-workspace>/dsc-systemc-lab/.work/runs/hybrid-differential/outputs/golden_payload.bin"
+      "path": "<x86-workspace>/dsc-systemc-lab/.work/runs/repaired-rtl-differential/outputs/golden_payload.bin"
     },
     "rtl_monolithic": {
-      "bytes": 20304,
-      "sha256": "98e3638efa031a7a149cee3dd904195fdf7b44ac7722810cc647c6c7a48517b2",
-      "path": "<x86-workspace>/dsc-systemc-lab/.work/runs/hybrid-differential/outputs/rtl_monolithic.bin"
+      "bytes": 20232,
+      "sha256": "33fdb4c1725599957fa7b9776e8278465e570592328066e786cb6e9089384f82",
+      "path": "<x86-workspace>/dsc-systemc-lab/.work/runs/repaired-rtl-differential/outputs/rtl_monolithic.bin"
     },
     "rtl_split": {
-      "bytes": 20304,
-      "sha256": "98e3638efa031a7a149cee3dd904195fdf7b44ac7722810cc647c6c7a48517b2",
-      "path": "<x86-workspace>/dsc-systemc-lab/.work/runs/hybrid-differential/outputs/rtl_split.bin"
+      "bytes": 20232,
+      "sha256": "33fdb4c1725599957fa7b9776e8278465e570592328066e786cb6e9089384f82",
+      "path": "<x86-workspace>/dsc-systemc-lab/.work/runs/repaired-rtl-differential/outputs/rtl_split.bin"
     },
     "hybrid_cycle_apb": {
-      "bytes": 20304,
-      "sha256": "98e3638efa031a7a149cee3dd904195fdf7b44ac7722810cc647c6c7a48517b2",
-      "path": "<x86-workspace>/dsc-systemc-lab/.work/runs/hybrid-differential/outputs/hybrid_cycle_apb.bin"
+      "bytes": 20232,
+      "sha256": "33fdb4c1725599957fa7b9776e8278465e570592328066e786cb6e9089384f82",
+      "path": "<x86-workspace>/dsc-systemc-lab/.work/runs/repaired-rtl-differential/outputs/hybrid_cycle_apb.bin"
     }
   },
   "comparisons": {
     "rtl_vs_golden": {
-      "byte": 24,
-      "reference": 91,
-      "candidate": 0
+      "byte": 254,
+      "reference": 18,
+      "candidate": 12
     },
     "split_vs_rtl": null,
     "hybrid_vs_split": null
@@ -231,16 +231,16 @@
     },
     "rtl_monolithic": {
       "word_bytes": 24,
-      "words": 846,
-      "adjacent_duplicate_words": 423,
-      "paired_duplicate_words": 423
+      "words": 843,
+      "adjacent_duplicate_words": 0,
+      "paired_duplicate_words": 0
     },
     "rtl_first_word_matches_golden": true,
-    "rtl_output_byte_delta": -432,
+    "rtl_output_byte_delta": -504,
     "classification": "shared RTL behavior differs from independent VESA function model",
     "first_suspect_boundary": {
       "module": "dsce_engine shared RTL output path",
-      "evidence": "0 output line markers observed before drain timeout",
+      "evidence": "210 output line markers observed before drain timeout",
       "inference": true
     }
   },

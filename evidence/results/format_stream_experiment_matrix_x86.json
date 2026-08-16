@@ -1,0 +1,53 @@
+{
+  "format": "dsc-format-stream-experiment-matrix-v1",
+  "host_architecture": "x86_64",
+  "dataset": "rgb444-8bpc-8bpp-192x108-two-slices",
+  "golden": {
+    "bytes": 20736,
+    "line_markers": 216,
+    "muxwords_per_slice": 1728
+  },
+  "experiments": [
+    {
+      "name": "delivered_rtl",
+      "overlays": [],
+      "bytes": 20304,
+      "first_mismatch_byte": 24,
+      "line_markers": 0,
+      "result": "rejected",
+      "finding": "bypass duplicates every 192-bit output word"
+    },
+    {
+      "name": "safe_handshake_and_chunk_boundaries",
+      "overlays": ["bypass", "format-buffer", "slice-mux"],
+      "bytes": 20232,
+      "first_mismatch_byte": 254,
+      "line_markers": 210,
+      "slice_muxwords": [1693, 1680],
+      "result": "diagnostic_only",
+      "report": "repaired_rtl_differential_x86.json",
+      "finding": "duplicate transfers are removed; CBR line flush/padding remains absent"
+    },
+    {
+      "name": "inferred_full_last_chain",
+      "overlays": [
+        "bypass",
+        "format-buffer",
+        "slice-mux",
+        "muxword-flush",
+        "muxword-last",
+        "format-last-wiring",
+        "stream-fifo-last",
+        "stream-builder-last"
+      ],
+      "bytes": 14928,
+      "first_mismatch_byte": 240,
+      "line_markers": 155,
+      "slice_muxwords": [1248, 1244],
+      "result": "rejected",
+      "report": "format_stream_last_chain_x86.json",
+      "finding": "port names alone are insufficient to reconstruct FIFO pointer and chunk completion semantics"
+    }
+  ],
+  "remaining_external_evidence": "official format/stream source or one correct two-line VCS boundary trace"
+}

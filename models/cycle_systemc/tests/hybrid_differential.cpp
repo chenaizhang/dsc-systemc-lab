@@ -48,6 +48,27 @@ struct FirstDifference {
     std::string candidate;
 };
 
+struct EngineBoundaryCounts {
+    std::uint64_t input_accept = 0;
+    std::uint64_t pack_accept = 0;
+    std::array<std::uint64_t, 4> partition_accept{};
+    std::array<std::uint64_t, 4> partition_last{};
+    std::array<std::uint64_t, 4> csc_accept{};
+    std::array<std::uint64_t, 4> csc_last{};
+    std::array<std::uint64_t, 4> slice_buffer_valid{};
+    std::array<std::uint64_t, 4> slice_buffer_last{};
+    std::array<std::uint64_t, 4> flatness_valid{};
+    std::array<std::uint64_t, 4> flatness_last{};
+    std::array<std::uint64_t, 4> predict_valid{};
+    std::array<std::uint64_t, 4> predict_last{};
+    std::array<std::uint64_t, 4> slice_output_accept{};
+    std::array<std::uint64_t, 4> slice_output_last{};
+    std::uint64_t mux_accept = 0;
+    std::uint64_t mux_line = 0;
+    std::uint64_t mux_frame = 0;
+    std::uint64_t top_accept = 0;
+};
+
 std::string token(std::istream& input)
 {
     std::string result;
@@ -251,6 +272,10 @@ struct Simulation {
     sc_core::sc_signal<std::uint32_t> bist_out[18];
 
     std::uint64_t cycles = 0;
+    std::uint64_t dsc_cycles = 0;
+    unsigned dsc_clock_numerator = 1;
+    unsigned dsc_clock_denominator = 1;
+    unsigned dsc_clock_accumulator = 0;
     FirstDifference split_difference;
     FirstDifference replacement_difference;
     std::vector<std::uint8_t> reference_bytes;
@@ -259,15 +284,29 @@ struct Simulation {
     std::uint64_t reference_line_markers = 0;
     std::uint64_t reference_frame_markers = 0;
     std::ofstream interface_trace;
+    std::ofstream engine_trace;
+    std::ofstream engine_dsc_trace;
     std::string last_trace_key;
+    EngineBoundaryCounts engine_counts;
 
-    explicit Simulation(const std::string& trace_path) : interface_trace(trace_path)
+    Simulation(const std::string& trace_path, const std::string& engine_trace_path,
+        const std::string& engine_dsc_trace_path,
+        unsigned clock_numerator, unsigned clock_denominator)
+        : dsc_clock_numerator(clock_numerator), dsc_clock_denominator(clock_denominator),
+          interface_trace(trace_path), engine_trace(engine_trace_path), engine_dsc_trace(engine_dsc_trace_path)
     {
-        if (!interface_trace)
-            throw std::runtime_error("cannot create module interface trace: " + trace_path);
+        if (!interface_trace || !engine_trace || !engine_dsc_trace
+            || dsc_clock_numerator == 0 || dsc_clock_denominator == 0)
+            throw std::runtime_error("cannot initialize traces or DSC clock ratio");
         interface_trace << "cycle,phase,split_status,split_bypass,split_axi_enable,split_dsc_enable,"
                            "hybrid_status,hybrid_bypass,hybrid_axi_enable,hybrid_dsc_enable,"
                            "input_ready,output_valid,output_line,output_frame,output_data\n";
+        engine_trace << "axi_cycle,phase,input_valid,input_ready,pack_valid,pack_ready,pack_line,"
+                        "partition_valid,partition_last,slice_input_ready,slice_output_valid,"
+                        "slice_output_ready,slice_output_last,mux_valid,mux_ready,mux_line,mux_frame,"
+                        "top_valid,top_ready,top_line,top_frame\n";
+        engine_dsc_trace << "dsc_cycle,axi_cycle,phase,slice_buffer_valid,slice_buffer_last,"
+                            "flatness_valid,flatness_last,predict_valid,predict_last\n";
         bind_top(reference, apb_clk, apb_select, apb_enable, apb_write, apb_strobe,
             apb_protect, apb_addr, apb_wdata, dsc_clk, reset_n, test_mode, axi_clk,
             axi_valid, axi_line, axi_frame, axi_data, axi_output_ready, monolithic);
@@ -281,6 +320,89 @@ struct Simulation {
             bist_in[i].write(0);
             reference.bist_sram_in[i](bist_in[i]);
             reference.bist_sram_out[i](bist_out[i]);
+        }
+    }
+
+    void record_engine_boundary(const std::string& phase)
+    {
+        const auto probe = split_top.engine_probe();
+        if (axi_valid.read() && split.axi_ready.read())
+            ++engine_counts.input_accept;
+        if (probe.pack_valid && probe.pack_ready)
+            ++engine_counts.pack_accept;
+        for (unsigned index = 0; index < 4; ++index) {
+            const auto mask = static_cast<std::uint8_t>(1U << index);
+            if ((probe.partition_valid & mask) && (probe.slice_input_ready & mask))
+                ++engine_counts.partition_accept[index];
+            if ((probe.partition_valid & mask) && (probe.slice_input_ready & mask)
+                && (probe.partition_last & mask))
+                ++engine_counts.partition_last[index];
+            if ((probe.csc_valid & mask) && (probe.slice_input_ready & mask))
+                ++engine_counts.csc_accept[index];
+            if ((probe.csc_valid & mask) && (probe.slice_input_ready & mask) && (probe.csc_last & mask))
+                ++engine_counts.csc_last[index];
+            if ((probe.slice_output_valid & mask) && (probe.slice_output_ready & mask))
+                ++engine_counts.slice_output_accept[index];
+            if ((probe.slice_output_valid & mask) && (probe.slice_output_ready & mask)
+                && (probe.slice_output_last & mask))
+                ++engine_counts.slice_output_last[index];
+        }
+        if (probe.mux_valid && probe.mux_ready)
+            ++engine_counts.mux_accept;
+        if (probe.mux_line)
+            ++engine_counts.mux_line;
+        if (probe.mux_frame)
+            ++engine_counts.mux_frame;
+        if (split.axi_valid.read() && axi_output_ready.read())
+            ++engine_counts.top_accept;
+
+        const auto active = (axi_valid.read() && split.axi_ready.read())
+            || (probe.pack_valid && probe.pack_ready)
+            || (probe.partition_valid & probe.slice_input_ready) || probe.partition_last
+            || (probe.slice_output_valid & probe.slice_output_ready) || probe.slice_output_last
+            || (probe.mux_valid && probe.mux_ready) || probe.mux_line || probe.mux_frame
+            || (split.axi_valid.read() && axi_output_ready.read())
+            || split.axi_line.read() || split.axi_frame.read();
+        if (active) {
+            engine_trace << cycles << ',' << phase << ',' << axi_valid.read() << ','
+                         << split.axi_ready.read() << ',' << probe.pack_valid << ','
+                         << probe.pack_ready << ',' << probe.pack_line << ','
+                         << static_cast<unsigned>(probe.partition_valid) << ','
+                         << static_cast<unsigned>(probe.partition_last) << ','
+                         << static_cast<unsigned>(probe.slice_input_ready) << ','
+                         << static_cast<unsigned>(probe.slice_output_valid) << ','
+                         << static_cast<unsigned>(probe.slice_output_ready) << ','
+                         << static_cast<unsigned>(probe.slice_output_last) << ','
+                         << probe.mux_valid << ',' << probe.mux_ready << ',' << probe.mux_line << ',' << probe.mux_frame << ','
+                         << split.axi_valid.read() << ',' << axi_output_ready.read() << ','
+                         << split.axi_line.read() << ',' << split.axi_frame.read() << '\n';
+        }
+    }
+
+    void record_dsc_boundary(const std::string& phase)
+    {
+        const auto probe = split_top.engine_probe();
+        for (unsigned index = 0; index < 4; ++index) {
+            const auto mask = static_cast<std::uint8_t>(1U << index);
+            if (probe.slice_buffer_valid & mask) ++engine_counts.slice_buffer_valid[index];
+            if ((probe.slice_buffer_valid & mask) && (probe.slice_buffer_last & mask))
+                ++engine_counts.slice_buffer_last[index];
+            if (probe.flatness_valid & mask) ++engine_counts.flatness_valid[index];
+            if ((probe.flatness_valid & mask) && (probe.flatness_last & mask))
+                ++engine_counts.flatness_last[index];
+            if (probe.predict_valid & mask) ++engine_counts.predict_valid[index];
+            if ((probe.predict_valid & mask) && (probe.predict_last & mask))
+                ++engine_counts.predict_last[index];
+        }
+        if (probe.slice_buffer_valid || probe.slice_buffer_last || probe.flatness_valid
+            || probe.flatness_last || probe.predict_valid || probe.predict_last) {
+            engine_dsc_trace << dsc_cycles << ',' << cycles << ',' << phase << ','
+                             << static_cast<unsigned>(probe.slice_buffer_valid) << ','
+                             << static_cast<unsigned>(probe.slice_buffer_last) << ','
+                             << static_cast<unsigned>(probe.flatness_valid) << ','
+                             << static_cast<unsigned>(probe.flatness_last) << ','
+                             << static_cast<unsigned>(probe.predict_valid) << ','
+                             << static_cast<unsigned>(probe.predict_last) << '\n';
         }
     }
 
@@ -306,11 +428,23 @@ struct Simulation {
         if (monolithic.axi_frame.read())
             ++reference_frame_markers;
 
+        dsc_clock_accumulator += dsc_clock_numerator;
+        const auto dsc_edges = dsc_clock_accumulator / dsc_clock_denominator;
+        dsc_clock_accumulator %= dsc_clock_denominator;
+        for (unsigned edge = 0; edge < dsc_edges; ++edge) {
+            dsc_clk.write(true);
+            sc_core::sc_start(sc_core::sc_time(1, sc_core::SC_NS));
+            ++dsc_cycles;
+            record_dsc_boundary(phase);
+            dsc_clk.write(false);
+            sc_core::sc_start(sc_core::sc_time(1, sc_core::SC_NS));
+        }
+
         apb_clk.write(true);
         axi_clk.write(true);
-        dsc_clk.write(true);
         sc_core::sc_start(sc_core::sc_time(1, sc_core::SC_NS));
         ++cycles;
+        record_engine_boundary(phase);
         compare_outputs(split_difference, cycles, phase, monolithic, split);
         compare_outputs(replacement_difference, cycles, phase, split, replaced);
         std::ostringstream trace_key;
@@ -381,8 +515,8 @@ void write_difference(std::ostream& output, const FirstDifference& difference)
 int sc_main(int argc, char** argv)
 {
     try {
-        if (argc != 5) {
-            std::cerr << "usage: hybrid_differential INPUT.ppm REFERENCE.dsc OUTPUT_DIR RUNTIME.json\n";
+        if (argc != 7) {
+            std::cerr << "usage: hybrid_differential INPUT.ppm REFERENCE.dsc OUTPUT_DIR RUNTIME.json DSC_CLOCK_NUMERATOR DSC_CLOCK_DENOMINATOR\n";
             return 2;
         }
         const auto image = read_ppm(argv[1]);
@@ -403,7 +537,11 @@ int sc_main(int argc, char** argv)
             throw std::runtime_error("PPS dimensions do not match the PPM input");
 
         const std::string output_dir = argv[3];
-        Simulation simulation{output_dir + "/module_interface_trace.csv"};
+        const auto dsc_clock_numerator = static_cast<unsigned>(std::stoul(argv[5]));
+        const auto dsc_clock_denominator = static_cast<unsigned>(std::stoul(argv[6]));
+        Simulation simulation{output_dir + "/module_interface_trace.csv",
+            output_dir + "/engine_boundary_trace.csv", output_dir + "/engine_dsc_boundary_trace.csv",
+            dsc_clock_numerator, dsc_clock_denominator};
         simulation.apb_select.write(false);
         simulation.apb_enable.write(false);
         simulation.apb_write.write(false);
@@ -513,15 +651,22 @@ int sc_main(int argc, char** argv)
 
         const auto target_words = (golden.size() + 23U) / 24U;
         bool drain_target_reached = false;
+        bool drain_quiescent = false;
+        std::size_t previous_output_bytes = simulation.reference_bytes.size();
+        unsigned idle_drain_cycles = 0;
         for (unsigned wait = 0; wait < 250000; ++wait) {
             simulation.tick("output_drain");
+            if (simulation.reference_bytes.size() != previous_output_bytes) {
+                previous_output_bytes = simulation.reference_bytes.size();
+                idle_drain_cycles = 0;
+            } else if (++idle_drain_cycles >= 4096) {
+                drain_quiescent = true;
+                break;
+            }
             if (simulation.reference_bytes.size() >= target_words * 24U
                 && simulation.split_bytes.size() >= target_words * 24U
                 && simulation.replaced_bytes.size() >= target_words * 24U) {
-                for (unsigned settle = 0; settle < 32; ++settle)
-                    simulation.tick("output_settle");
                 drain_target_reached = true;
-                break;
             }
         }
 
@@ -536,6 +681,9 @@ int sc_main(int argc, char** argv)
         std::ofstream report(argv[4]);
         report << "{\n  \"format\": \"dsc-hybrid-differential-runtime-v1\",\n"
                << "  \"cycles\": " << simulation.cycles << ",\n"
+               << "  \"clocking\": {\"axi_cycles\": " << simulation.cycles
+               << ", \"dsc_cycles\": " << simulation.dsc_cycles
+               << ", \"dsc_to_axi\": \"" << dsc_clock_numerator << ':' << dsc_clock_denominator << "\"},\n"
                << "  \"input\": {\"width\": " << image.width << ", \"height\": " << image.height << "},\n"
                << "  \"setup\": {\"command\": " << simulation.split_top.encoder_command()
                << ", \"startup_status\": " << startup_status
@@ -546,7 +694,46 @@ int sc_main(int argc, char** argv)
                << ", \"pps_chunk_size\": " << split_pps.range(193, 178).to_uint()
                << ", \"replacement_pps_equal\": " << (startup_pps_equal ? "true" : "false") << "},\n"
                << "  \"drain_target_reached\": " << (drain_target_reached ? "true" : "false") << ",\n"
+               << "  \"drain_quiescent\": " << (drain_quiescent ? "true" : "false") << ",\n"
                << "  \"module_interface_trace\": \"" << json_escape(output_dir + "/module_interface_trace.csv") << "\",\n"
+               << "  \"engine_boundary_trace\": \"" << json_escape(output_dir + "/engine_boundary_trace.csv") << "\",\n"
+               << "  \"engine_dsc_boundary_trace\": \"" << json_escape(output_dir + "/engine_dsc_boundary_trace.csv") << "\",\n"
+               << "  \"engine_boundaries\": {\"input_accept\": " << simulation.engine_counts.input_accept
+               << ", \"pack_accept\": " << simulation.engine_counts.pack_accept
+               << ", \"partition_accept\": [" << simulation.engine_counts.partition_accept[0] << ','
+               << simulation.engine_counts.partition_accept[1] << ',' << simulation.engine_counts.partition_accept[2]
+               << ',' << simulation.engine_counts.partition_accept[3] << "], \"partition_last\": ["
+               << simulation.engine_counts.partition_last[0] << ',' << simulation.engine_counts.partition_last[1]
+               << ',' << simulation.engine_counts.partition_last[2] << ',' << simulation.engine_counts.partition_last[3]
+               << "], \"csc_accept\": [" << simulation.engine_counts.csc_accept[0] << ','
+               << simulation.engine_counts.csc_accept[1] << ',' << simulation.engine_counts.csc_accept[2]
+               << ',' << simulation.engine_counts.csc_accept[3] << "], \"csc_last\": ["
+               << simulation.engine_counts.csc_last[0] << ',' << simulation.engine_counts.csc_last[1]
+               << ',' << simulation.engine_counts.csc_last[2] << ',' << simulation.engine_counts.csc_last[3]
+               << "], \"slice_buffer_valid\": [" << simulation.engine_counts.slice_buffer_valid[0] << ','
+               << simulation.engine_counts.slice_buffer_valid[1] << ',' << simulation.engine_counts.slice_buffer_valid[2]
+               << ',' << simulation.engine_counts.slice_buffer_valid[3] << "], \"slice_buffer_last\": ["
+               << simulation.engine_counts.slice_buffer_last[0] << ',' << simulation.engine_counts.slice_buffer_last[1]
+               << ',' << simulation.engine_counts.slice_buffer_last[2] << ',' << simulation.engine_counts.slice_buffer_last[3]
+               << "], \"flatness_valid\": [" << simulation.engine_counts.flatness_valid[0] << ','
+               << simulation.engine_counts.flatness_valid[1] << ',' << simulation.engine_counts.flatness_valid[2]
+               << ',' << simulation.engine_counts.flatness_valid[3] << "], \"flatness_last\": ["
+               << simulation.engine_counts.flatness_last[0] << ',' << simulation.engine_counts.flatness_last[1]
+               << ',' << simulation.engine_counts.flatness_last[2] << ',' << simulation.engine_counts.flatness_last[3]
+               << "], \"predict_valid\": [" << simulation.engine_counts.predict_valid[0] << ','
+               << simulation.engine_counts.predict_valid[1] << ',' << simulation.engine_counts.predict_valid[2]
+               << ',' << simulation.engine_counts.predict_valid[3] << "], \"predict_last\": ["
+               << simulation.engine_counts.predict_last[0] << ',' << simulation.engine_counts.predict_last[1]
+               << ',' << simulation.engine_counts.predict_last[2] << ',' << simulation.engine_counts.predict_last[3]
+               << "], \"slice_output_accept\": [" << simulation.engine_counts.slice_output_accept[0] << ','
+               << simulation.engine_counts.slice_output_accept[1] << ',' << simulation.engine_counts.slice_output_accept[2]
+               << ',' << simulation.engine_counts.slice_output_accept[3] << "], \"slice_output_last\": ["
+               << simulation.engine_counts.slice_output_last[0] << ',' << simulation.engine_counts.slice_output_last[1]
+               << ',' << simulation.engine_counts.slice_output_last[2] << ',' << simulation.engine_counts.slice_output_last[3]
+               << "], \"mux_accept\": " << simulation.engine_counts.mux_accept
+               << ", \"mux_line\": " << simulation.engine_counts.mux_line
+               << ", \"mux_frame\": " << simulation.engine_counts.mux_frame
+               << ", \"top_accept\": " << simulation.engine_counts.top_accept << "},\n"
                << "  \"output_sidebands\": {\"line_markers\": " << simulation.reference_line_markers
                << ", \"frame_markers\": " << simulation.reference_frame_markers << "},\n"
                << "  \"bytes\": {\"golden\": " << golden.size()

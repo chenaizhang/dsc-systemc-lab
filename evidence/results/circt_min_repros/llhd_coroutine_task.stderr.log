@@ -1,0 +1,12 @@
+<x86-workspace>/dsc-systemc-lab/.work/circt-min-repros/llhd_coroutine_task.hw.mlir:2:3: error: failed to legalize operation 'llhd.coroutine': "llhd.coroutine"() <{function_type = (i17, i17, !llhd.ref<i17>) -> (), sym_name = "llhd_coroutine_task_pkg::choose_min", sym_visibility = "private"}> ({...}) : () -> ()
+  llhd.coroutine private @"llhd_coroutine_task_pkg::choose_min"(%arg0: i17, %arg1: i17, %arg2: !llhd.ref<i17>) {
+  ^
+<x86-workspace>/dsc-systemc-lab/.work/circt-min-repros/llhd_coroutine_task.hw.mlir:2:3: note: see current operation:
+"llhd.coroutine"() <{function_type = (i17, i17, !llhd.ref<i17>) -> (), sym_name = "llhd_coroutine_task_pkg::choose_min", sym_visibility = "private"}> ({
+^bb0(%arg0: i17, %arg1: i17, %arg2: !llhd.ref<i17>):
+  %0 = "llhd.constant_time"() <{value = #llhd.time<0ns, 0d, 1e>}> : () -> !llhd.time
+  %1 = "comb.icmp"(%arg0, %arg1) <{predicate = 6 : i64}> : (i17, i17) -> i1
+  %2 = "comb.mux"(%1, %arg0, %arg1) : (i1, i17, i17) -> i17
+  "llhd.drv"(%arg2, %2, %0) : (!llhd.ref<i17>, i17, !llhd.time) -> ()
+  "llhd.return"() : () -> ()
+}) : () -> ()

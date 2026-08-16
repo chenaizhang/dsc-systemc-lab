@@ -9,6 +9,14 @@ model_dir=$run_dir/verilator
 output_dir=$run_dir/outputs
 golden_dir=$run_dir/golden
 jobs=${DSCFLOW_BUILD_JOBS:-2}
+dsc_clock_numerator=${DSCFLOW_DSC_CLOCK_NUMERATOR:-3}
+dsc_clock_denominator=${DSCFLOW_DSC_CLOCK_DENOMINATOR:-1}
+apply_rtl_repair=${DSCFLOW_APPLY_RTL_REPAIR:-0}
+rtl_overlays=${DSCFLOW_RTL_OVERLAYS:-}
+report_path=${DSCFLOW_HYBRID_REPORT:-$repository_root/evidence/results/hybrid_differential_x86.json}
+interface_trace_evidence=${DSCFLOW_INTERFACE_TRACE_EVIDENCE:-$repository_root/evidence/results/hybrid_differential_module_interface_trace.csv}
+engine_trace_evidence=${DSCFLOW_ENGINE_TRACE_EVIDENCE:-$repository_root/evidence/results/hybrid_differential_engine_boundary_trace.csv}
+engine_dsc_trace_evidence=${DSCFLOW_ENGINE_DSC_TRACE_EVIDENCE:-$repository_root/evidence/results/hybrid_differential_engine_dsc_boundary_trace.csv}
 
 if [[ "$(uname -m)" != "x86_64" ]]; then
     printf '正式验证只能在 x86_64 执行，当前为 %s\n' "$(uname -m)" >&2
@@ -23,17 +31,123 @@ test -f "$rtl_dir/surelog.f" || { printf '缺少私有 RTL filelist：%s\n' "$rt
 mkdir -p "$model_dir" "$output_dir" "$golden_dir"
 DSCFLOW_RUN_DIR="$golden_dir" "$repository_root/models/function_tlm/run_x86_verify.sh"
 
+if [[ -z "$rtl_overlays" && "$apply_rtl_repair" == "1" ]]; then
+    rtl_overlays=bypass,format-buffer,slice-mux
+fi
+overlay_enabled() {
+    [[ ",$rtl_overlays," == *",$1,"* ]]
+}
+
 filtered_filelist=$run_dir/verilator-reachable.f
 {
     printf '%s\n' "$repository_root/models/cycle_systemc/rtl_shims/dsc_support_primitives.sv"
-    grep -v -e '^dsc_support_primitives.sv$' -e '^dsce_quant.sv$' -e '^-timescale' "$rtl_dir/surelog.f"
+    if overlay_enabled bypass; then
+        bypass_overlay=$run_dir/rtl-overlay/dsce_bypass.sv
+        python3 "$repository_root/tools/prepare_rtl_overlay.py" \
+            --repair bypass --input "$rtl_dir/dsce_bypass.sv" --output "$bypass_overlay"
+    fi
+    if overlay_enabled format-buffer; then
+        format_buffer_overlay=$run_dir/rtl-overlay/dsce_format_buffer.sv
+        python3 "$repository_root/tools/prepare_rtl_overlay.py" \
+            --repair format-buffer --input "$rtl_dir/dsce_format_buffer.sv" --output "$format_buffer_overlay"
+    fi
+    if overlay_enabled slice-mux; then
+        slice_mux_overlay=$run_dir/rtl-overlay/dsce_slice_mux.sv
+        python3 "$repository_root/tools/prepare_rtl_overlay.py" \
+            --repair slice-mux --input "$rtl_dir/dsce_slice_mux.sv" --output "$slice_mux_overlay"
+    fi
+    if overlay_enabled muxword-flush; then
+        muxword_overlay=$run_dir/rtl-overlay/dsce_muxword.sv
+        python3 "$repository_root/tools/prepare_rtl_overlay.py" \
+            --repair muxword-flush --input "$rtl_dir/dsce_muxword.sv" --output "$muxword_overlay"
+    fi
+    if overlay_enabled muxword-last; then
+        muxword_overlay=${muxword_overlay:-$run_dir/rtl-overlay/dsce_muxword.sv}
+        muxword_input=$rtl_dir/dsce_muxword.sv
+        if overlay_enabled muxword-flush; then
+            muxword_input=$muxword_overlay
+        fi
+        python3 "$repository_root/tools/prepare_rtl_overlay.py" \
+            --repair muxword-last --input "$muxword_input" --output "$muxword_overlay.next"
+        mv "$muxword_overlay.next" "$muxword_overlay"
+    fi
+    if overlay_enabled format-last-wiring; then
+        format_overlay=$run_dir/rtl-overlay/dsce_format.sv
+        python3 "$repository_root/tools/prepare_rtl_overlay.py" \
+            --repair format-last-wiring --input "$rtl_dir/dsce_format.sv" --output "$format_overlay"
+    fi
+    if overlay_enabled stream-fifo-last; then
+        stream_fifo_overlay=$run_dir/rtl-overlay/dsce_stream_fifo.sv
+        python3 "$repository_root/tools/prepare_rtl_overlay.py" \
+            --repair stream-fifo-last --input "$rtl_dir/dsce_stream_fifo.sv" --output "$stream_fifo_overlay"
+    fi
+    if overlay_enabled stream-builder-last; then
+        stream_builder_overlay=$run_dir/rtl-overlay/dsce_stream_builder.sv
+        python3 "$repository_root/tools/prepare_rtl_overlay.py" \
+            --repair stream-builder-last --input "$rtl_dir/dsce_stream_builder.sv" --output "$stream_builder_overlay"
+    fi
+    while IFS= read -r source; do
+        case "$source" in
+            dsc_support_primitives.sv|dsce_quant.sv|-timescale*) continue ;;
+            dsce_bypass.sv)
+                if overlay_enabled bypass; then
+                    printf '%s\n' "$bypass_overlay"
+                else
+                    printf '%s\n' "$source"
+                fi
+                ;;
+            dsce_format_buffer.sv)
+                if overlay_enabled format-buffer; then
+                    printf '%s\n' "$format_buffer_overlay"
+                else
+                    printf '%s\n' "$source"
+                fi
+                ;;
+            dsce_slice_mux.sv)
+                if overlay_enabled slice-mux; then
+                    printf '%s\n' "$slice_mux_overlay"
+                else
+                    printf '%s\n' "$source"
+                fi
+                ;;
+            dsce_muxword.sv)
+                if overlay_enabled muxword-flush || overlay_enabled muxword-last; then
+                    printf '%s\n' "$muxword_overlay"
+                else
+                    printf '%s\n' "$source"
+                fi
+                ;;
+            dsce_format.sv)
+                if overlay_enabled format-last-wiring; then
+                    printf '%s\n' "$format_overlay"
+                else
+                    printf '%s\n' "$source"
+                fi
+                ;;
+            dsce_stream_fifo.sv)
+                if overlay_enabled stream-fifo-last; then
+                    printf '%s\n' "$stream_fifo_overlay"
+                else
+                    printf '%s\n' "$source"
+                fi
+                ;;
+            dsce_stream_builder.sv)
+                if overlay_enabled stream-builder-last; then
+                    printf '%s\n' "$stream_builder_overlay"
+                else
+                    printf '%s\n' "$source"
+                fi
+                ;;
+            *) printf '%s\n' "$source" ;;
+        esac
+    done < "$rtl_dir/surelog.f"
 } > "$filtered_filelist"
 
 tops=(dsc_encoder dsce_apb dsce_command dsce_engine dsce_interrupt dsce_pps dsce_reset dsce_timers)
 for top in "${tops[@]}"; do
     object_dir=$model_dir/$top
     mkdir -p "$object_dir"
-    (cd "$rtl_dir" && verilator --cc --sc --timing --timescale 1ns/1ps -Wno-fatal \
+    (cd "$rtl_dir" && verilator --cc --sc --timing --public-flat-rw --timescale 1ns/1ps -Wno-fatal \
         --top-module "$top" --prefix "V$top" --Mdir "$object_dir" \
         -f "$filtered_filelist") >"$object_dir/generate.log" 2>&1
     make -C "$object_dir" -f "V$top.mk" -j"$jobs" "V${top}__ALL.a" \
@@ -43,7 +157,7 @@ done
 verilator_root=$(verilator -V | sed -n 's/^ *VERILATOR_ROOT *= *//p' | head -n 1)
 test -n "$verilator_root" || { printf '无法确定 VERILATOR_ROOT\n' >&2; exit 2; }
 
-include_args=(-I"$repository_root/models/cycle_systemc/include" -I"$verilator_root/include")
+include_args=(-I"$repository_root/models/cycle_systemc/include" -I"$verilator_root/include" -I"$verilator_root/include/vltstd")
 library_args=()
 for top in "${tops[@]}"; do
     include_args+=(-I"$model_dir/$top")
@@ -68,15 +182,20 @@ fi
 "$executable" \
     "$golden_dir/deterministic_rgb.ppm" \
     "$golden_dir/deterministic_rgb.dsc" \
-    "$output_dir" "$run_dir/runtime.json"
+    "$output_dir" "$run_dir/runtime.json" \
+    "$dsc_clock_numerator" "$dsc_clock_denominator"
 
 install -m 0644 "$output_dir/module_interface_trace.csv" \
-    "$repository_root/evidence/results/hybrid_differential_module_interface_trace.csv"
+    "$interface_trace_evidence"
+install -m 0644 "$output_dir/engine_boundary_trace.csv" \
+    "$engine_trace_evidence"
+install -m 0644 "$output_dir/engine_dsc_boundary_trace.csv" \
+    "$engine_dsc_trace_evidence"
 
 python3 "$repository_root/tools/finalize_hybrid_differential_report.py" \
     --runtime "$run_dir/runtime.json" \
     --golden-report "$golden_dir/report.json" \
     --output-dir "$output_dir" \
-    --report "$repository_root/evidence/results/hybrid_differential_x86.json"
+    --report "$report_path"
 
-printf 'DSC 混合差分验证完成：%s\n' "$repository_root/evidence/results/hybrid_differential_x86.json"
+printf 'DSC 混合差分验证完成：%s\n' "$report_path"

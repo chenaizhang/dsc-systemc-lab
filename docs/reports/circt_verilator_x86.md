@@ -9,12 +9,12 @@
 3. CIRCT 1.155.0 的原生 SystemC 转换实际停在哪一层、哪个 operation；
 4. 原生转换失败时，Verilator-SystemC 能否作为整核或局部模块的 cycle-level 黑盒。
 
-实测日期为 2026-08-15。所有 EDA 命令在 `10.203.255.52` 的 Ubuntu x86_64 环境执行，macOS
+实测日期为 2026-08-15。所有 EDA 命令在隔离的 Ubuntu x86_64 验证服务器执行，macOS
 只用于编辑代码和同步结果。
 
 ## 2. 样本与工具
 
-输入来自赖聪提供的 `verilog_dsc.7z`，包含 43 个 `.sv`、`surelog.f`、UHDM 数据库、层次
+输入来自 `verilog_dsc.7z`，包含 43 个 `.sv`、`surelog.f`、UHDM 数据库、层次
 JSON、exporter 源码和 Surelog 日志。私有 RTL 和 UHDM 数据库不提交 Git。
 
 | 项目 | 实测值 |
@@ -26,7 +26,7 @@ JSON、exporter 源码和 Surelog 日志。私有 RTL 和 UHDM 数据库不提�
 | C++ | GCC 15.2.0 |
 | GNU Make | 4.4.1 |
 | 顶层 | `dsc_encoder` |
-| UHDM hierarchy JSON SHA-256 | `1bec883721ce6d3cc2b530310c8df5e1d5bc420dc92eff42f42bbc1308d43558` |
+| UHDM hierarchy JSON SHA-256 | `65dd427900e6f6777ca974816d0502112e84c3c6005a943b6845ec595586067d` |
 | UHDM DB SHA-256 | `ab86b7d632ce790d1504dfb19cbf9524faa5c95ab774fb15f5229c7c48639af6` |
 
 CIRCT 使用官方 x86 shared 包。由于该包运行时需要 `libz3.so.4`，服务器从 Ubuntu `libz3-4`
@@ -67,13 +67,19 @@ CIRCT 使用官方 x86 shared 包。由于该包运行时需要 `libz3.so.4`，�
 | Surelog leaf instances | 73 |
 | Surelog fatal / syntax / error / warning | 0 / 0 / 0 / 0 |
 | JSON definitions | 43 |
-| JSON hierarchy nodes | 25 |
-| JSON invocations | 24 |
-| JSON 未表示的实例差额 | 236 |
+| 修复后 JSON hierarchy nodes | 261 |
+| 修复后 JSON invocations | 260 |
+| generate 路径内实例 | 236 |
+| JSON 未表示的实例差额 | 0 |
+| 实例端口总数（含 top） | 3,243 |
+| 子实例具名绑定 | 3,155 |
+| 显式悬空输出 | 60 |
 
-结论：Surelog elaboration 本身成功，但附带 exporter 的 JSON 不完整。源码显示它只递归
-`vpiModule`，generate scope 下的实例没有完整展开。因此这份 JSON 可作证据，不能单独作完整层次
-golden。
+旧 exporter 只递归 `vpiModule`，因此只有 25 个节点。现已增加 `vpiGenScope` 和
+`vpiGenScopeArray` 递归，并在 x86 上从新 UHDM 数据库重建；261 个实例与 Surelog elaboration
+统计完全一致。3,155 个具名绑定已经从 `vpiHighConn` 导出；其余 60 个均能在 SV 中对应到显式
+空连接 `()`，不是查询丢失。UHDM 1.84 对部分 packed/typed 端口仍报告 width 0，宽度需继续用
+CIRCT HW type 交叉补全后才能生成新结构指纹。
 
 ### 4.2 CIRCT frontend 与 core IR
 
@@ -110,7 +116,10 @@ failed to legalize operation 'llhd.coroutine'
 symbol: dsce_defs_pkg::dsce_min_sad4
 ```
 
-这是 package task/ref 相关的 LLHD coroutine，发生在 Comb 或 Seq emission 之前。因此当前真实
+这是 package task/ref 相关的 LLHD coroutine，发生在 Comb 或 Seq emission 之前。该问题已用
+`tests/fixtures/circt/llhd_coroutine_task.sv` 缩成一个 package task 和一次调用，仍稳定复现。
+将等价逻辑改为 function 后，conversion 成功，证明 task coroutine 就是首个 conversion 阻塞；
+随后 C++ emitter 继续失败于 `systemc.convert`、`comb.icmp` 和 `comb.mux`。因此当前真实
 DSC 设计的分阶段状态是：
 
 | 阶段 | 状态 |
@@ -120,8 +129,8 @@ DSC 设计的分阶段状态是：
 | Comb SSA 提取 | 成功 |
 | Seq SSA 提取 | 成功 |
 | LLHD → SystemC conversion | 失败于 `llhd.coroutine` |
-| SystemC dialect 完整生成 | 未完成 |
-| C++ emission | 因上一阶段失败而未运行 |
+| SystemC dialect 完整生成 | 原设计未完成；function 对照用例成功 |
+| C++ emission | function 对照失败于 convert/icmp/mux pattern |
 
 所以不能声称“CIRCT 已把这个 DSC 骨架和胶水逻辑生成可编译 SystemC”。准确说法是：结构和行为
 证据已进入 CIRCT core IR，原生 HW→SystemC 全设计转换被 LLHD operation 挡住。
@@ -180,10 +189,10 @@ CIRCT 输出。
    隔离该 operation，才能继续测 Comb/Seq 的原生 SystemC backend 覆盖率。
 3. Verilator-SystemC 的整核和两个局部黑盒均可构建，端口与 CIRCT 结构一致，可作为混合仿真的
    现实回退。
-4. 附带 UHDM JSON 漏了 generate scope，必须让赖聪修 exporter，或直接从 UHDM 数据库补遍历
-   `vpiGenScope/vpiGenScopeArray` 后，才能做严格层次等价。
-5. 当前压缩包没有图像输入、寄存器配置序列、参考压缩输出或官方 DSC C model，故最终数据差分
-   没有执行。状态明确记录为 `not_run_no_shared_stimulus_in_verilog_dsc_bundle`。
+4. UHDM generate scope 漏抽取已修复，43 个 definition、261 个实例与 Surelog 统计一致；端口/net
+   级新指纹仍待重建。
+5. 后续已从批准的 VESA model 建立共享图像、PPS 和参考压缩输出；功能差分结果见
+   `docs/reports/hybrid_differential_x86.md`，不应再沿用本报告初次运行时的“无 stimulus”结论。
 
 ## 6. 下一步门禁
 

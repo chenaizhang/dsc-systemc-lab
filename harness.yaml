@@ -5,20 +5,36 @@ allowed_changes:
   - harness.yaml
   - README.md
   - TASKS.md
+  - tasks/T2_uhdm_structure.md
+  - tasks/T3_circt_stages.md
+  - tasks/T4_agent_cycle_systemc.md
   - tasks/T6_hybrid_differential.md
   - configs/**
+  - containers/**
   - datasets/**
   - docs/reports/**
+  - docs/blockers/**
+  - evidence/uhdm/**
   - evidence/results/**
   - models/cycle_systemc/**
   - scripts/**
   - src/dscflow/workflows/hybrid/**
   - tests/**
   - tools/**
+  - .work/**
 checks:
   - id: python-tests
     category: test
     command: [bash, scripts/run_python_tests.sh]
+  - id: uhdm-structure-x86
+    category: test
+    command: [bash, scripts/run_uhdm_structure_verification.sh]
+  - id: circt-min-repros-x86
+    category: test
+    command: [bash, scripts/run_circt_min_repros.sh]
   - id: hybrid-differential-x86
     category: test
     command: [bash, scripts/run_hybrid_differential_verification.sh]
+  - id: repaired-rtl-differential-x86
+    category: test
+    command: [bash, scripts/run_repaired_rtl_verification.sh]

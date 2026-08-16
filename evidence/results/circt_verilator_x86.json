@@ -2,7 +2,7 @@
   "format": "llm4eda-staged-circt-systemc-x86-verification-v1",
   "verified_at": "2026-08-15",
   "host": {
-    "address": "10.203.255.52",
+    "address": "x86-validation-server",
     "os": "Ubuntu Linux",
     "architecture": "x86_64"
   },
