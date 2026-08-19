@@ -85,3 +85,25 @@ def test_inferred_last_chain_overlays_match_delivered_rtl_anchors() -> None:
     assert "i_muxword_chunk_done" in repair_stream_builder_last(
         (rtl / "dsce_stream_builder.sv").read_text(encoding="utf-8")
     )
+from tools.prepare_rtl_overlay import repair_muxword_flush_dedup
+
+
+def test_flush_dedup_replaces_double_emit_branch() -> None:
+    source = """    always_ff @(posedge dsc_clk or negedge dsc_reset_n) begin
+                if (kUSE_FLUSH_LOGIC == 1) begin
+                    if (i_word_complete == 1'b1 || dsc_vlc_last_in == 1'b1) begin
+                        i_muxword_staging_valid <= 1'b1;
+                        i_muxword_staging <= i_output_word;
+                        i_mux_buffer <= i_remainder_word;
+                        i_bits_in_word <= (dsc_vlc_last_in == 1'b1) ? 7'd0 : i_bits_in_next_word - i_max_bits_per_word;
+
+                        if (i_word_complete == 1'b1 && dsc_vlc_last_in == 1'b1 && i_bits_in_next_word != i_max_bits_per_word) begin
+                            i_muxword_flush <= 1'b1;
+                        end // if
+                    end else begin
+"""
+    repaired = repair_muxword_flush_dedup(source)
+    assert "i_muxword_staging <= i_remainder_word;" in repaired
+    assert "i_muxword_staging_last <= 1'b1;" in repaired
+    # The partial-final-word path no longer asserts the separate flush flag.
+    assert repaired.count("i_muxword_flush <= 1'b1;") == 0

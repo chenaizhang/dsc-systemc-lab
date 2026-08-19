@@ -1,53 +1,109 @@
 {
-  "format": "dsc-format-stream-experiment-matrix-v1",
-  "host_architecture": "x86_64",
-  "dataset": "rgb444-8bpc-8bpp-192x108-two-slices",
-  "golden": {
-    "bytes": 20736,
-    "line_markers": 216,
-    "muxwords_per_slice": 1728
+ "format": "dsc-format-stream-experiment-matrix-v1",
+ "host_architecture": "x86_64",
+ "dataset": "rgb444-8bpc-8bpp-192x108-two-slices",
+ "golden": {
+  "bytes": 20736,
+  "line_markers": 216,
+  "muxwords_per_slice": 1728
+ },
+ "experiments": [
+  {
+   "name": "delivered_rtl",
+   "overlays": [],
+   "bytes": 20304,
+   "first_mismatch_byte": 24,
+   "line_markers": 0,
+   "result": "rejected",
+   "finding": "bypass duplicates every 192-bit output word"
   },
-  "experiments": [
-    {
-      "name": "delivered_rtl",
-      "overlays": [],
-      "bytes": 20304,
-      "first_mismatch_byte": 24,
-      "line_markers": 0,
-      "result": "rejected",
-      "finding": "bypass duplicates every 192-bit output word"
-    },
-    {
-      "name": "safe_handshake_and_chunk_boundaries",
-      "overlays": ["bypass", "format-buffer", "slice-mux"],
-      "bytes": 20232,
-      "first_mismatch_byte": 254,
-      "line_markers": 210,
-      "slice_muxwords": [1693, 1680],
-      "result": "diagnostic_only",
-      "report": "repaired_rtl_differential_x86.json",
-      "finding": "duplicate transfers are removed; CBR line flush/padding remains absent"
-    },
-    {
-      "name": "inferred_full_last_chain",
-      "overlays": [
-        "bypass",
-        "format-buffer",
-        "slice-mux",
-        "muxword-flush",
-        "muxword-last",
-        "format-last-wiring",
-        "stream-fifo-last",
-        "stream-builder-last"
-      ],
-      "bytes": 14928,
-      "first_mismatch_byte": 240,
-      "line_markers": 155,
-      "slice_muxwords": [1248, 1244],
-      "result": "rejected",
-      "report": "format_stream_last_chain_x86.json",
-      "finding": "port names alone are insufficient to reconstruct FIFO pointer and chunk completion semantics"
-    }
-  ],
-  "remaining_external_evidence": "official format/stream source or one correct two-line VCS boundary trace"
+  {
+   "name": "safe_handshake_and_chunk_boundaries",
+   "overlays": [
+    "bypass",
+    "format-buffer",
+    "slice-mux"
+   ],
+   "bytes": 20232,
+   "first_mismatch_byte": 254,
+   "line_markers": 210,
+   "slice_muxwords": [
+    1693,
+    1680
+   ],
+   "result": "diagnostic_only",
+   "report": "repaired_rtl_differential_x86.json",
+   "finding": "duplicate transfers are removed; CBR line flush/padding remains absent"
+  },
+  {
+   "name": "inferred_full_last_chain",
+   "overlays": [
+    "bypass",
+    "format-buffer",
+    "slice-mux",
+    "muxword-flush",
+    "muxword-last",
+    "format-last-wiring",
+    "stream-fifo-last",
+    "stream-builder-last"
+   ],
+   "bytes": 14928,
+   "first_mismatch_byte": 240,
+   "line_markers": 155,
+   "slice_muxwords": [
+    1248,
+    1244
+   ],
+   "result": "rejected",
+   "report": "format_stream_last_chain_x86.json",
+   "finding": "port names alone are insufficient to reconstruct FIFO pointer and chunk completion semantics; contract-driven retests below"
+  },
+  {
+   "name": "contract_flush_enabled",
+   "overlays": [
+    "bypass",
+    "format-buffer",
+    "slice-mux",
+    "muxword-flush",
+    "muxword-last"
+   ],
+   "bytes": 18480,
+   "line_markers": 192,
+   "muxword_words_builder_input": 3642,
+   "result": "rejected",
+   "finding": "the muxword flush branch never triggers (the VLC pads the final word); enabling kUSE_FLUSH_LOGIC alone changes the final-group staging timing and emits 93 extra words per slice"
+  },
+  {
+   "name": "contract_flush_dedup",
+   "overlays": [
+    "bypass",
+    "format-buffer",
+    "slice-mux",
+    "muxword-flush",
+    "muxword-last",
+    "muxword-flush-dedup"
+   ],
+   "bytes": 18480,
+   "line_markers": 192,
+   "result": "rejected",
+   "finding": "identical to contract_flush_enabled: the dedup branch never fires because i_bits_in_next_word always equals i_max_bits_per_word at line ends; kept as anti-evidence"
+  },
+  {
+   "name": "contract_last_chain_no_flush",
+   "overlays": [
+    "bypass",
+    "format-buffer",
+    "slice-mux",
+    "muxword-last",
+    "format-last-wiring",
+    "stream-fifo-last",
+    "stream-builder-last"
+   ],
+   "bytes": 20232,
+   "line_markers": 210,
+   "result": "diagnostic_only",
+   "finding": "restoring the downstream last propagation without the flush leaves the output identical to the safe set; the builder drops ~130 words per slice regardless, so the remaining defect is inside the stream builder / format buffer chunk logic"
+  }
+ ],
+ "remaining_external_evidence": "the defect is localized to the stream builder / format buffer word handling; a builder-level word counter probe (fmt_muxword_words) is now available in the differential harness for the next iteration"
 }

@@ -32,6 +32,9 @@ struct HybridTop : sc_core::sc_module {
         std::uint8_t flatness_last = 0;
         std::uint8_t predict_valid = 0;
         std::uint8_t predict_last = 0;
+        // Words emitted by the three dsce_muxword instances into the stream
+        // builder (3-bit one-hot per substream, format-internal wire).
+        std::uint8_t fmt_muxword_valid = 0;
         std::uint8_t slice_output_valid = 0;
         std::uint8_t slice_output_ready = 0;
         std::uint8_t slice_output_last = 0;
@@ -267,6 +270,10 @@ struct HybridTop : sc_core::sc_module {
             probe.flatness_last |= static_cast<std::uint8_t>(slices[index]->i_last_fd) << index;
             probe.predict_valid |= static_cast<std::uint8_t>(slices[index]->i_valid_pd) << index;
             probe.predict_last |= static_cast<std::uint8_t>(slices[index]->i_last_pd) << index;
+            // Words from the three muxword instances into the stream builder
+            // (flattened public signal inside dsce_format_inst).
+            probe.fmt_muxword_valid |=
+                static_cast<std::uint8_t>(slices[index]->dsce_format_inst__DOT__i_valid_mw);
         }
         return probe;
     }

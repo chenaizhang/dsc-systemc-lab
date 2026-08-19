@@ -193,6 +193,50 @@ def repair_muxword_last(source: str) -> str:
     return source
 
 
+def repair_muxword_flush_dedup(source: str) -> str:
+    """Contract fix: at the line end the final word is partial, so stage the
+    zero-padded remainder directly instead of emitting the full word plus a
+    separate flush word (the delivered RTL double-emits and corrupts the
+    chunk count). Expects repair_muxword_last to have been applied first."""
+    old_block = (
+        "                if (kUSE_FLUSH_LOGIC == 1) begin\n"
+        "                    if (i_word_complete == 1'b1 || dsc_vlc_last_in == 1'b1) begin\n"
+        "                        i_muxword_staging_valid <= 1'b1;\n"
+        "                        i_muxword_staging <= i_output_word;\n"
+        "                        i_mux_buffer <= i_remainder_word;\n"
+        "                        i_bits_in_word <= (dsc_vlc_last_in == 1'b1) ? 7'd0 : i_bits_in_next_word - i_max_bits_per_word;\n"
+        "\n"
+        "                        if (i_word_complete == 1'b1 && dsc_vlc_last_in == 1'b1 && i_bits_in_next_word != i_max_bits_per_word) begin\n"
+        "                            i_muxword_flush <= 1'b1;\n"
+        "                        end // if\n"
+        "                    end else begin\n"
+    )
+    new_block = (
+        "                if (kUSE_FLUSH_LOGIC == 1) begin\n"
+        "                    if (i_word_complete == 1'b1 && dsc_vlc_last_in == 1'b1 && i_bits_in_next_word != i_max_bits_per_word) begin\n"
+        "                        // Final word of the line is partial: stage the\n"
+        "                        // zero-padded remainder directly (contract:\n"
+        "                        // exactly 16 muxwords per line per slice).\n"
+        "                        i_muxword_staging_valid <= 1'b1;\n"
+        "                        i_muxword_staging <= i_remainder_word;\n"
+        "                        i_muxword_staging_last <= 1'b1;\n"
+        "                        i_mux_buffer <= 64'd0;\n"
+        "                        i_bits_in_word <= 7'd0;\n"
+        "                        i_muxword_flush <= 1'b0;\n"
+        "                    end else if (i_word_complete == 1'b1 || dsc_vlc_last_in == 1'b1) begin\n"
+        "                        i_muxword_staging_valid <= 1'b1;\n"
+        "                        i_muxword_staging <= i_output_word;\n"
+        "                        i_muxword_staging_last <= dsc_vlc_last_in;\n"
+        "                        i_mux_buffer <= i_remainder_word;\n"
+        "                        i_bits_in_word <= (dsc_vlc_last_in == 1'b1) ? 7'd0 : i_bits_in_next_word - i_max_bits_per_word;\n"
+        "                    end else begin\n"
+    )
+    if source.count(old_block) != 1:
+        raise ValueError("expected one muxword flush block, found "
+                         + str(source.count(old_block)))
+    return source.replace(old_block, new_block)
+
+
 def repair_format_last_wiring(source: str) -> str:
     anchors = {
         "declaration": (
@@ -366,6 +410,7 @@ def main() -> int:
             "slice-mux",
             "muxword-flush",
             "muxword-last",
+            "muxword-flush-dedup",
             "format-last-wiring",
             "stream-fifo-last",
             "stream-builder-last",
@@ -381,6 +426,7 @@ def main() -> int:
         "slice-mux": repair_slice_mux,
         "muxword-flush": enable_muxword_flush,
         "muxword-last": repair_muxword_last,
+        "muxword-flush-dedup": repair_muxword_flush_dedup,
         "format-last-wiring": repair_format_last_wiring,
         "stream-fifo-last": repair_stream_fifo_last,
         "stream-builder-last": repair_stream_builder_last,
