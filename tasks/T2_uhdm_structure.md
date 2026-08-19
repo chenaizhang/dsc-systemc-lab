@@ -29,5 +29,12 @@
   `containers/uhdm-dev.Containerfile` 固化。
 - 已从本次数据库导出 3,243 个实例端口，其中 3,155 个具名绑定；60 个空表达式均与 SV 的显式
   悬空输出 `()` 对应。
-- UHDM 1.84 对部分 packed/typed 端口报告 width 0；尚需用 CIRCT HW type 补齐并更新 Agent 结构
-  指纹，T2 因此尚未整体完成。
+- UHDM 1.84 对所有端口均报告 width 0；已用 CIRCT HW IR 端口签名交叉补全
+  （`tools/fill_uhdm_widths.py`）。`evidence/uhdm/structure_ir.json` 升级为 v2：43 个 definition
+  的端口表全部带 `hw_type` 与 `width_bits`，3,243 个实例端口全部非零（抽查 11 处与 SV 声明一致，
+  含嵌套数组/结构体聚合）。
+- 结构指纹已更新（`configs/uhdm_agent.json`），`tools/check_assets.py` 与
+  `scripts/run_uhdm_structure_verification.sh` 门禁均通过；补宽单元测试 6 项并入
+  `tests/unit/test_uhdm_widths.py`。
+- T2 验收达成：Surelog 零 error、`uhdm-lint` 通过、top 唯一、filelist/SHA 一致、绑定全部解析、
+  端口宽度完整非零。

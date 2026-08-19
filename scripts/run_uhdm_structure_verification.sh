@@ -86,3 +86,39 @@ if not designs or instances <= 1:
 if not ports or not named_bindings:
     raise SystemExit("error: UHDM ports or child-instance bindings are empty")
 PY
+
+# Cross-fill the port widths from the CIRCT core IR (UHDM 1.84 exports every
+# port with width 0) and gate on a complete fill.
+hw_mlir="${DSCFLOW_HW_MLIR:-$repo_root/.work/dsc_encoder.hw.mlir}"
+if [[ ! -f "$hw_mlir" ]]; then
+  echo "error: CIRCT core IR not found (set DSCFLOW_HW_MLIR): $hw_mlir" >&2
+  exit 2
+fi
+python3 tools/fill_uhdm_widths.py \
+  "$evidence_dir/module_hierarchy.json" \
+  "$hw_mlir" \
+  "$evidence_dir/structure_ir.json"
+
+python3 - "$evidence_dir/structure_ir.json" <<'PY'
+import json
+import pathlib
+import sys
+
+data = json.loads(pathlib.Path(sys.argv[1]).read_text())
+gates = data["gates"]
+print(
+    "UHDM widths verified: "
+    f"definitions={gates['definitions']} ports={gates['ports']} "
+    f"filled={gates['widths_filled']} missing={gates['widths_missing']}"
+)
+if gates["widths_missing"] != 0:
+    raise SystemExit("error: some UHDM ports have no CIRCT width")
+if gates["widths_filled"] < 3000:
+    raise SystemExit("error: unexpectedly few filled port widths")
+for module in data["modules"]:
+    for port in module["ports"]:
+        if not port.get("width_bits"):
+            raise SystemExit(
+                f"error: zero-width port {module['name']}.{port['name']}"
+            )
+PY
