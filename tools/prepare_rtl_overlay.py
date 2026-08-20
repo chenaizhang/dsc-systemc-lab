@@ -213,28 +213,251 @@ def repair_muxword_flush_dedup(source: str) -> str:
     )
     new_block = (
         "                if (kUSE_FLUSH_LOGIC == 1) begin\n"
-        "                    if (i_word_complete == 1'b1 && dsc_vlc_last_in == 1'b1 && i_bits_in_next_word != i_max_bits_per_word) begin\n"
-        "                        // Final word of the line is partial: stage the\n"
-        "                        // zero-padded remainder directly (contract:\n"
-        "                        // exactly 16 muxwords per line per slice).\n"
+        "                    if (dsc_vlc_last_in == 1'b1 && i_bits_in_next_word != 7'd0) begin\n"
+        "                        // Final word of the line is partial: the accumulated\n"
+        "                        // bits never reach a full word, so emit them directly\n"
+        "                        // (zero-padded by the 64-bit staging width). Contract:\n"
+        "                        // exactly 16 muxwords per line per slice.\n"
         "                        i_muxword_staging_valid <= 1'b1;\n"
-        "                        i_muxword_staging <= i_remainder_word;\n"
+        "                        i_muxword_staging <= i_input_word;\n"
         "                        i_muxword_staging_last <= 1'b1;\n"
         "                        i_mux_buffer <= 64'd0;\n"
         "                        i_bits_in_word <= 7'd0;\n"
         "                        i_muxword_flush <= 1'b0;\n"
-        "                    end else if (i_word_complete == 1'b1 || dsc_vlc_last_in == 1'b1) begin\n"
+        "                    end else if (i_word_complete == 1'b1) begin\n"
         "                        i_muxword_staging_valid <= 1'b1;\n"
         "                        i_muxword_staging <= i_output_word;\n"
         "                        i_muxword_staging_last <= dsc_vlc_last_in;\n"
         "                        i_mux_buffer <= i_remainder_word;\n"
-        "                        i_bits_in_word <= (dsc_vlc_last_in == 1'b1) ? 7'd0 : i_bits_in_next_word - i_max_bits_per_word;\n"
+        "                        i_bits_in_word <= i_bits_in_next_word - i_max_bits_per_word;\n"
         "                    end else begin\n"
     )
     if source.count(old_block) != 1:
         raise ValueError("expected one muxword flush block, found "
                          + str(source.count(old_block)))
     return source.replace(old_block, new_block)
+
+
+def repair_muxword_contract(source: str) -> str:
+    """Combined contract fix for the muxword: enable the flush, deduplicate
+    the double emission at line ends, and add the last output with proper
+    staging so the downstream builder sees the line boundaries."""
+    # 1) Enable the flush.
+    source = enable_muxword_flush(source)
+    # 2) Deduplicate: at a partial final word, stage the remainder directly.
+    source = repair_muxword_flush_dedup(source)
+    # 3) Add the last output port/register and wire the staging/forwarding.
+    anchors = {
+        "port": (
+            "    output logic                    dsc_muxword_valid_out,  // valid predicted pixels out\n",
+            (
+                "    output logic                    dsc_muxword_valid_out,  // valid predicted pixels out\n"
+                "    output logic                    dsc_muxword_last_out,   // final muxword in this chunk\n"
+            ),
+        ),
+        "decl": (
+            "    logic                           i_muxword_staging_valid;\n",
+            (
+                "    logic                           i_muxword_staging_valid;\n"
+                "    logic                           i_muxword_staging_last;\n"
+            ),
+        ),
+        "reset_output": (
+            "            dsc_muxword_valid_out <= 1'b0;\n            dsc_muxword_out <= 64'd0;\n",
+            (
+                "            dsc_muxword_valid_out <= 1'b0;\n"
+                "            dsc_muxword_last_out <= 1'b0;\n"
+                "            dsc_muxword_out <= 64'd0;\n"
+            ),
+        ),
+        "reset_stage": (
+            "            i_muxword_staging_valid <= 1'b0;\n            i_muxword_staging <= 64'd0;\n",
+            (
+                "            i_muxword_staging_valid <= 1'b0;\n"
+                "            i_muxword_staging_last <= 1'b0;\n"
+                "            i_muxword_staging <= 64'd0;\n"
+            ),
+        ),
+        "defaults": (
+            "            dsc_muxword_valid_out <= 1'b0;\n            i_muxword_staging_valid <= 1'b0;\n",
+            (
+                "            dsc_muxword_valid_out <= 1'b0;\n"
+                "            dsc_muxword_last_out <= 1'b0;\n"
+                "            i_muxword_staging_valid <= 1'b0;\n"
+                "            i_muxword_staging_last <= 1'b0;\n"
+            ),
+        ),
+        "forward": (
+            (
+                "                    dsc_muxword_valid_out <= 1'b1;\n"
+                "                    dsc_muxword_out <= i_muxword_staging;\n"
+            ),
+            (
+                "                    dsc_muxword_valid_out <= 1'b1;\n"
+                "                    dsc_muxword_last_out <= i_muxword_staging_last;\n"
+                "                    dsc_muxword_out <= i_muxword_staging;\n"
+            ),
+        ),
+    }
+    for name, (old, new) in anchors.items():
+        count = source.count(old)
+        if count != 1:
+            raise ValueError("expected one muxword-contract " + name +
+                             " anchor, found " + str(count))
+        source = source.replace(old, new)
+    return source
+
+
+def repair_fifo_input_ready(source: str) -> str:
+    """Add an input-side accept (not-full) output to the stream FIFO so the
+    muxword can hold its staged word when the FIFO is full."""
+    port_old = (
+        "    output logic [63:0]             dsc_muxword_out             // muxword output\n"
+        ");\n"
+    )
+    port_new = (
+        "    output logic [63:0]             dsc_muxword_out,            // muxword output\n"
+        "    output logic                    dsc_muxword_accept_out      // input-side not-full\n"
+        ");\n"
+    )
+    if source.count(port_old) != 1:
+        raise ValueError("expected one fifo port anchor, found " + str(source.count(port_old)))
+    source = source.replace(port_old, port_new)
+    map_old = (
+        "        i_muxword_read = (dsc_muxword_valid_out == 1'b1 && dsc_muxword_ready_out == 1'b1 && i_muxword_write_ptr != i_muxword_read_ptr) ||\n"
+    )
+    map_new = (
+        "        dsc_muxword_accept_out = ~i_muxword_full;\n"
+        "\n"
+        "        i_muxword_read = (dsc_muxword_valid_out == 1'b1 && dsc_muxword_ready_out == 1'b1 && i_muxword_write_ptr != i_muxword_read_ptr) ||\n"
+    )
+    if source.count(map_old) != 1:
+        raise ValueError("expected one fifo signal-map anchor")
+    return source.replace(map_old, map_new)
+
+
+def repair_muxword_backpressure(source: str) -> str:
+    """Add a ready input to the muxword and hold the staged word (and the
+    packing state) when the downstream cannot accept it. This restores the
+    backpressure path that the delivered RTL deleted."""
+    port_old = (
+        "    output logic                    dsc_muxword_valid_out,  // valid predicted pixels out\n"
+    )
+    port_new = (
+        "    output logic                    dsc_muxword_valid_out,  // valid predicted pixels out\n"
+        "    input  logic                    dsc_muxword_ready_in,   // downstream accept (FIFO not full)\n"
+    )
+    if source.count(port_old) != 1:
+        raise ValueError("expected one muxword valid port anchor")
+    source = source.replace(port_old, port_new)
+    hold_old = (
+        "        end else begin\n"
+        "\n"
+        "            // --------------------------------------\n"
+        "            //  muxword size selection\n"
+        "            // --------------------------------------\n"
+    )
+    hold_new = (
+        "        end else begin\n"
+        "\n"
+        "            if (i_muxword_staging_valid == 1'b1 && dsc_muxword_ready_in == 1'b0) begin\n"
+        "                // Backpressure: hold the staged word and stall the\n"
+        "                // packing until the downstream accepts it.\n"
+        "            end else begin\n"
+        "\n"
+        "            // --------------------------------------\n"
+        "            //  muxword size selection\n"
+        "            // --------------------------------------\n"
+    )
+    if source.count(hold_old) != 1:
+        raise ValueError("expected one muxword packing anchor")
+    source = source.replace(hold_old, hold_new)
+    # Close the added if before the output staging section: the packing block
+    # ends right before the "// ----- staging output ----- //" comment.
+    close_old = (
+        "            end // if\n"
+        "\n"
+        "            // --------------------------------------\n"
+        "            //  output muxwords on a group boundary\n"
+        "            // --------------------------------------\n"
+    )
+    close_new = (
+        "            end // if\n"
+        "            end // backpressure hold\n"
+        "\n"
+        "            // --------------------------------------\n"
+        "            //  output muxwords on a group boundary\n"
+        "            // --------------------------------------\n"
+    )
+    if source.count(close_old) != 1:
+        raise ValueError("expected one muxword close anchor")
+    return source.replace(close_old, close_new)
+
+
+def repair_builder_accept_passthrough(source: str) -> str:
+    """Pass the FIFO input-side accept out of the stream builder so the
+    format stage can drive the muxword ready inputs. Expects
+    repair_fifo_input_ready to have run on dsce_stream_fifo.sv."""
+    builder_old = (
+        "    output logic [63:0]             dsc_muxword_out                 // muxword output\n"
+        ");\n"
+    )
+    builder_new = (
+        "    output logic [63:0]             dsc_muxword_out,                // muxword output\n"
+        "    output logic [2:0]              dsc_muxword_accept_out          // input-side not-full per substream\n"
+        ");\n"
+    )
+    if source.count(builder_old) != 1:
+        raise ValueError("expected one builder port anchor")
+    source = source.replace(builder_old, builder_new)
+    fifo_port_old = (
+        "            .dsc_muxword_out            (i_muxword[gx])\n"
+    )
+    fifo_port_new = (
+        "            .dsc_muxword_out            (i_muxword[gx]),\n"
+        "            .dsc_muxword_accept_out     (dsc_muxword_accept_out[gx])\n"
+    )
+    if source.count(fifo_port_old) != 1:
+        raise ValueError("expected one builder fifo port anchor")
+    return source.replace(fifo_port_old, fifo_port_new)
+
+
+def repair_format_backpressure_wiring(source: str) -> str:
+    """Connect the builder accept outputs to the muxword ready inputs in
+    dsce_format. Expects repair_builder_accept_passthrough and
+    repair_muxword_backpressure to have run."""
+    fmt_builder_old = (
+        "        .dsc_muxword_out            (i_muxword_sb)\n"
+        "    );\n"
+    )
+    fmt_builder_new = (
+        "        .dsc_muxword_out            (i_muxword_sb),\n"
+        "        .dsc_muxword_accept_out     (i_muxword_accept)\n"
+        "    );\n"
+    )
+    if source.count(fmt_builder_old) != 1:
+        raise ValueError("expected one format builder wiring anchor")
+    source = source.replace(fmt_builder_old, fmt_builder_new)
+    decl_old = (
+        "    logic                           i_muxword_last_sb;\n"
+    )
+    decl_new = (
+        "    logic                           i_muxword_last_sb;\n"
+        "    logic [2:0]                     i_muxword_accept;\n"
+    )
+    if source.count(decl_old) != 1:
+        raise ValueError("expected one format last_sb decl anchor")
+    source = source.replace(decl_old, decl_new)
+    mux_ready_old = (
+        "            .dsc_muxword_valid_out  (i_valid_mw[mx]),\n"
+    )
+    mux_ready_new = (
+        "            .dsc_muxword_valid_out  (i_valid_mw[mx]),\n"
+        "            .dsc_muxword_ready_in   (i_muxword_accept[mx]),\n"
+    )
+    if source.count(mux_ready_old) != 1:
+        raise ValueError("expected one muxword valid wiring anchor")
+    return source.replace(mux_ready_old, mux_ready_new)
 
 
 def repair_format_last_wiring(source: str) -> str:
@@ -411,6 +634,11 @@ def main() -> int:
             "muxword-flush",
             "muxword-last",
             "muxword-flush-dedup",
+            "fifo-input-ready",
+            "muxword-backpressure",
+            "muxword-contract",
+            "format-backpressure-wiring",
+            "builder-accept-passthrough",
             "format-last-wiring",
             "stream-fifo-last",
             "stream-builder-last",
@@ -427,6 +655,11 @@ def main() -> int:
         "muxword-flush": enable_muxword_flush,
         "muxword-last": repair_muxword_last,
         "muxword-flush-dedup": repair_muxword_flush_dedup,
+        "fifo-input-ready": repair_fifo_input_ready,
+        "muxword-backpressure": repair_muxword_backpressure,
+        "muxword-contract": repair_muxword_contract,
+        "format-backpressure-wiring": repair_format_backpressure_wiring,
+        "builder-accept-passthrough": repair_builder_accept_passthrough,
         "format-last-wiring": repair_format_last_wiring,
         "stream-fifo-last": repair_stream_fifo_last,
         "stream-builder-last": repair_stream_builder_last,

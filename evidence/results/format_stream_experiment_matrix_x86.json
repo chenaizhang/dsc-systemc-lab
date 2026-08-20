@@ -103,7 +103,26 @@
    "line_markers": 210,
    "result": "diagnostic_only",
    "finding": "restoring the downstream last propagation without the flush leaves the output identical to the safe set; the builder drops ~130 words per slice regardless, so the remaining defect is inside the stream builder / format buffer chunk logic"
+  },
+  {
+   "name": "contract_line_end_direct_emit",
+   "overlays": [
+    "bypass",
+    "format-buffer",
+    "slice-mux",
+    "muxword-contract",
+    "muxword-backpressure",
+    "fifo-input-ready",
+    "builder-accept-passthrough",
+    "format-backpressure-wiring"
+   ],
+   "bytes": 20232,
+   "line_markers": 210,
+   "muxword_words": 3339,
+   "vlc_last_pulses": 648,
+   "result": "diagnostic_only",
+   "finding": "all 648 expected line-end pulses (108x3x2) reach the muxword; the word deficit (3,339 vs 3,456) therefore originates inside the muxword packing itself: the final partial word of a line is carried into the next line instead of being emitted, and the per-chunk data diverges from the golden from line 1 slice 0 (byte 254)"
   }
  ],
- "remaining_external_evidence": "the defect is localized to the stream builder / format buffer word handling; a builder-level word counter probe (fmt_muxword_words) is now available in the differential harness for the next iteration"
+ "remaining_external_evidence": "muxword-internal event probe (word_complete / staging / bits_in_word at line ends) is the next instrumentation step; the backpressure and line-end emission overlays are in place and validated to not regress the baseline"
 }

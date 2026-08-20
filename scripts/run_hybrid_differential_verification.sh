@@ -56,15 +56,40 @@ filtered_filelist=$run_dir/verilator-reachable.f
         python3 "$repository_root/tools/prepare_rtl_overlay.py" \
             --repair slice-mux --input "$rtl_dir/dsce_slice_mux.sv" --output "$slice_mux_overlay"
     fi
+    if overlay_enabled muxword-contract; then
+        muxword_overlay=$run_dir/rtl-overlay/dsce_muxword.sv
+        python3 "$repository_root/tools/prepare_rtl_overlay.py" \
+            --repair muxword-contract --input "$rtl_dir/dsce_muxword.sv" --output "$muxword_overlay"
+    fi
     if overlay_enabled muxword-flush; then
         muxword_overlay=$run_dir/rtl-overlay/dsce_muxword.sv
         python3 "$repository_root/tools/prepare_rtl_overlay.py" \
             --repair muxword-flush --input "$rtl_dir/dsce_muxword.sv" --output "$muxword_overlay"
     fi
+    if overlay_enabled muxword-flush-dedup; then
+        muxword_overlay=${muxword_overlay:-$run_dir/rtl-overlay/dsce_muxword.sv}
+        muxword_input=$rtl_dir/dsce_muxword.sv
+        if overlay_enabled muxword-contract; then
+        muxword_overlay=$run_dir/rtl-overlay/dsce_muxword.sv
+        python3 "$repository_root/tools/prepare_rtl_overlay.py" \
+            --repair muxword-contract --input "$rtl_dir/dsce_muxword.sv" --output "$muxword_overlay"
+    fi
+    if overlay_enabled muxword-flush; then
+            muxword_input=$muxword_overlay
+        fi
+        python3 "$repository_root/tools/prepare_rtl_overlay.py" \
+            --repair muxword-flush-dedup --input "$muxword_input" --output "$muxword_overlay.next"
+        mv "$muxword_overlay.next" "$muxword_overlay"
+    fi
     if overlay_enabled muxword-last; then
         muxword_overlay=${muxword_overlay:-$run_dir/rtl-overlay/dsce_muxword.sv}
         muxword_input=$rtl_dir/dsce_muxword.sv
-        if overlay_enabled muxword-flush; then
+        if overlay_enabled muxword-contract; then
+        muxword_overlay=$run_dir/rtl-overlay/dsce_muxword.sv
+        python3 "$repository_root/tools/prepare_rtl_overlay.py" \
+            --repair muxword-contract --input "$rtl_dir/dsce_muxword.sv" --output "$muxword_overlay"
+    fi
+    if overlay_enabled muxword-flush; then
             muxword_input=$muxword_overlay
         fi
         python3 "$repository_root/tools/prepare_rtl_overlay.py" \
@@ -85,6 +110,46 @@ filtered_filelist=$run_dir/verilator-reachable.f
         stream_builder_overlay=$run_dir/rtl-overlay/dsce_stream_builder.sv
         python3 "$repository_root/tools/prepare_rtl_overlay.py" \
             --repair stream-builder-last --input "$rtl_dir/dsce_stream_builder.sv" --output "$stream_builder_overlay"
+    fi
+    if overlay_enabled fifo-input-ready; then
+        stream_fifo_overlay=${stream_fifo_overlay:-$run_dir/rtl-overlay/dsce_stream_fifo.sv}
+        fifo_input=$rtl_dir/dsce_stream_fifo.sv
+        if overlay_enabled stream-fifo-last; then
+            fifo_input=$stream_fifo_overlay
+        fi
+        python3 "$repository_root/tools/prepare_rtl_overlay.py" \
+            --repair fifo-input-ready --input "$fifo_input" --output "$stream_fifo_overlay.next"
+        mv "$stream_fifo_overlay.next" "$stream_fifo_overlay"
+    fi
+    if overlay_enabled muxword-backpressure; then
+        muxword_overlay=${muxword_overlay:-$run_dir/rtl-overlay/dsce_muxword.sv}
+        muxword_input=$rtl_dir/dsce_muxword.sv
+        if overlay_enabled muxword-flush || overlay_enabled muxword-last; then
+            muxword_input=$muxword_overlay
+        fi
+        python3 "$repository_root/tools/prepare_rtl_overlay.py" \
+            --repair muxword-backpressure --input "$muxword_input" --output "$muxword_overlay.next"
+        mv "$muxword_overlay.next" "$muxword_overlay"
+    fi
+    if overlay_enabled builder-accept-passthrough; then
+        stream_builder_overlay=${stream_builder_overlay:-$run_dir/rtl-overlay/dsce_stream_builder.sv}
+        builder_input=$rtl_dir/dsce_stream_builder.sv
+        if overlay_enabled stream-builder-last; then
+            builder_input=$stream_builder_overlay
+        fi
+        python3 "$repository_root/tools/prepare_rtl_overlay.py" \
+            --repair builder-accept-passthrough --input "$builder_input" --output "$stream_builder_overlay.next"
+        mv "$stream_builder_overlay.next" "$stream_builder_overlay"
+    fi
+    if overlay_enabled format-backpressure-wiring; then
+        format_overlay=${format_overlay:-$run_dir/rtl-overlay/dsce_format.sv}
+        format_input=$rtl_dir/dsce_format.sv
+        if overlay_enabled format-last-wiring; then
+            format_input=$format_overlay
+        fi
+        python3 "$repository_root/tools/prepare_rtl_overlay.py" \
+            --repair format-backpressure-wiring --input "$format_input" --output "$format_overlay.next"
+        mv "$format_overlay.next" "$format_overlay"
     fi
     while IFS= read -r source; do
         case "$source" in
@@ -111,28 +176,28 @@ filtered_filelist=$run_dir/verilator-reachable.f
                 fi
                 ;;
             dsce_muxword.sv)
-                if overlay_enabled muxword-flush || overlay_enabled muxword-last; then
+                if overlay_enabled muxword-contract || overlay_enabled muxword-flush || overlay_enabled muxword-flush-dedup || overlay_enabled muxword-last || overlay_enabled muxword-backpressure; then
                     printf '%s\n' "$muxword_overlay"
                 else
                     printf '%s\n' "$source"
                 fi
                 ;;
             dsce_format.sv)
-                if overlay_enabled format-last-wiring; then
+                if overlay_enabled format-last-wiring || overlay_enabled format-backpressure-wiring; then
                     printf '%s\n' "$format_overlay"
                 else
                     printf '%s\n' "$source"
                 fi
                 ;;
             dsce_stream_fifo.sv)
-                if overlay_enabled stream-fifo-last; then
+                if overlay_enabled stream-fifo-last || overlay_enabled fifo-input-ready; then
                     printf '%s\n' "$stream_fifo_overlay"
                 else
                     printf '%s\n' "$source"
                 fi
                 ;;
             dsce_stream_builder.sv)
-                if overlay_enabled stream-builder-last; then
+                if overlay_enabled stream-builder-last || overlay_enabled builder-accept-passthrough; then
                     printf '%s\n' "$stream_builder_overlay"
                 else
                     printf '%s\n' "$source"
