@@ -1,0 +1,83 @@
+{
+  "format": "dsc-depth1-function-contracts",
+  "version": "1.0.0",
+  "claim_boundary": "These are transaction-level reference functions aligned to the first RTL hierarchy level. Passing them proves equivalence to the verified flat Function-TLM for covered transactions; it does not prove cycle equivalence to RTL.",
+  "top": "dsc_function_tlm::DscLayeredFunctionTlm",
+  "modules": [
+    {
+      "rtl_module": "dsce_apb",
+      "systemc_module": "DsceApbFunction",
+      "inputs": ["TLM generic payload", "previous register value"],
+      "outputs": ["validated request", "byte-enable merged 32-bit value"],
+      "state": "none",
+      "timing": "top-level transport adds 1 ns per accepted APB access",
+      "errors": ["unaligned, out-of-range, short, or null-data payload"],
+      "evidence": ["RTL hierarchy and port contract", "flat Function-TLM APB behavior"]
+    },
+    {
+      "rtl_module": "dsce_timers",
+      "systemc_module": "DsceTimersFunction",
+      "inputs": ["completed-frame event"],
+      "outputs": ["encoded frame count"],
+      "state": "32-bit completed-frame counter",
+      "timing": "event-level; no clock process",
+      "errors": [],
+      "evidence": ["flat Function-TLM register 0x020 behavior"]
+    },
+    {
+      "rtl_module": "dsce_interrupt",
+      "systemc_module": "DsceInterruptFunction",
+      "inputs": ["enable write", "end-of-frame event", "codec error event", "cause read"],
+      "outputs": ["enable", "cause", "sticky state"],
+      "state": "7-bit qualified enable/cause/state held in 32-bit values",
+      "timing": "event-level; cause clears on read",
+      "errors": [],
+      "evidence": ["flat Function-TLM registers 0x080, 0x084, and 0x088"]
+    },
+    {
+      "rtl_module": "dsce_pps",
+      "systemc_module": "DscePpsFunction",
+      "inputs": ["PPS data/index/commit writes", "PPS data read", "frame-start event"],
+      "outputs": ["shadow PPS read data", "active 128-byte PPS"],
+      "state": "shadow PPS, active PPS, auto-increment index, pending commit",
+      "timing": "commit occurs at frame start",
+      "errors": [],
+      "evidence": ["flat Function-TLM registers 0x100, 0x104, and 0x108"]
+    },
+    {
+      "rtl_module": "dsce_command",
+      "systemc_module": "DsceCommandFunction",
+      "inputs": ["command write", "frame boundary", "codec failure"],
+      "outputs": ["active", "collecting", "current command"],
+      "state": "command, active flag, collecting-frame flag",
+      "timing": "event-level command and frame transition semantics",
+      "errors": ["invalid command", "frame beat inconsistent with collection state"],
+      "evidence": ["flat Function-TLM command and pixel-stream admission behavior"]
+    },
+    {
+      "rtl_module": "dsce_reset",
+      "systemc_module": "DsceResetFunction",
+      "inputs": ["decoded command"],
+      "outputs": ["reset event"],
+      "state": "none",
+      "timing": "event-level; no reset clock tree is modeled",
+      "errors": [],
+      "evidence": ["flat Function-TLM Reset command behavior"]
+    },
+    {
+      "rtl_module": "dsce_engine",
+      "systemc_module": "DsceEngineFunction",
+      "inputs": ["active PPS", "pixel beats", "pixels per cycle", "output mode"],
+      "outputs": ["codec status", "compressed byte stream", "diagnostic"],
+      "state": "current frame beat buffer and codec binding",
+      "timing": "complete-frame function call; top-level transport adds 10 ns encode annotation",
+      "errors": ["missing codec", "unapproved codec", "invalid frame/PPS", "empty or failed encode"],
+      "evidence": ["verified VESA reference adapter", "flat Function-TLM engine behavior"]
+    }
+  ],
+  "verification": {
+    "structure": "runtime elaboration must observe exactly the seven named child SC_MODULE instances",
+    "semantic": "flat and layered Function-TLM receive identical APB and pixel transactions; response, delay, output bytes, sideband, status, active state, counter, and interrupt cause must match",
+    "golden": "the VESA-backed end-to-end vector remains the independent algorithm reference"
+  }
+}

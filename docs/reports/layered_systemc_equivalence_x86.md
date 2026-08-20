@@ -78,27 +78,41 @@ systemc-clang 直接读取完整 48 万字节头文件会超时。流程现在�
 | Seq | 540 | 36 | 否 |
 | LLHD | 433 | 8 | 否 |
 
-完整 `convert-hw-to-systemc` 当前首先停在 aggregate 的 `hw.bitcast`。因此这不是 HW 骨架失败；HW
-已经单独成功，失败属于行为 lowering 入口。下一步应先补 aggregate bitcast，再按首个新失败依次
-补 Comb emission 和 Seq/LLHD lowering。
+fork 中补齐的 LLHD lowering 现在先按 CFG 入边重建中间 block 参数和状态 mux，再处理聚合信号的
+整段/局部写，并把 `llhd.combinational` 提升为模块级 Comb/Seq SSA。真实设计的 6 个 timed process
+和 4 个 combinational process 均已越过 lowering；原先由聚合信号物化产生的 `hw.bitcast` 不再是
+首错。完整转换的新首错为 `sim.fmt.literal`，来自 RTL 中 FIFO overflow 的仿真打印语句：
+
+| 新增门禁 | 结果 |
+|---|---:|
+| 标准 LLHD→Core 预处理 | 通过 |
+| 剩余 timed/combinational LLHD lowering | 通过 |
+| `hw.bitcast` 首错消除 | 通过 |
+| 当前首个不支持 operation | `sim.fmt.literal` |
+
+这说明 HW、聚合 Comb 和主要 Seq/LLHD 行为已继续向前推进，但尚不能宣称完整 native SystemC 已
+生成；下一步要为 `sim.fmt.literal`/`sim.print` 建立 SystemC 诊断输出 lowering，之后再按新首错
+继续。
 
 ### 2.4 Function 逐层细化
 
 顶层 VESA Function-TLM 已在共享合成向量上与官方命令行模型逐字节一致，所以深度 0 为已验证。
-当前更深层次不能诚实标为完成：
+深度 1 已实现为 7 个真实 child `SC_MODULE`，每个模块内部均为直接调用的 transaction-level
+function，不含 `SC_METHOD`、`SC_THREAD` 或周期握手状态机。x86 验证同时覆盖：运行时 child 集合、
+扁平 Function-TLM 与分层 Function-TLM 的共享事务差分，以及官方 VESA 向量的逐字节比较。
 
 | 深度 | 实例数 | 已验证 function | 缺失 |
 |---:|---:|---:|---:|
 | 0 | 1 | 1 | 0 |
-| 1 | 7 | 0 | 7 |
+| 1 | 7 | 7 | 0 |
 | 2 | 24 | 0 | 24 |
 | 3 | 45 | 0 | 45 |
 | 4 | 92 | 0 | 92 |
 | 5 | 92 | 0 | 92 |
 
-已有的 `CycleApb` 是 cycle-level SystemC，不是纯 function reference；流程已修正，今后不会因为它
-编译和差分通过就把对应 function 标成完成。每个生成的 `DscFunctionSlot` 只是注入点，必须用父层
-function 或对应 Comb/Seq 实现跑同输入差分后才能转成 `verified`。
+深度 1 的 `verified` 只表示它们是已验证扁平 Function-TLM 的事务级拆分，并保持合格 VESA profile
+的端到端字节结果；它不表示 7 个模块已经分别与 RTL 逐周期等价。深度 2 以后仍必须用父层 function
+或对应 Comb/Seq 实现跑同输入差分后才能转成 `verified`。
 
 ## 3. 可复现入口
 
@@ -115,9 +129,8 @@ bash scripts/run_layered_equivalence_verification.sh
 
 - HW 可以生成 SystemC：真实 DSC 已通过转换、发射、C++ 编译和运行时 elaboration，261 个实例与
   UHDM 一致。
-- Comb/Seq 还没有生成完整可执行行为：当前首个缺口是 `hw.bitcast`，后续 operation 必须按错误
-  顺序继续补齐。
-- 顶层 Function-TLM 已验证；逐层 function 拆解的框架、状态机和差分接口已经落地，但深度 1～5
-  的模块行为尚缺少可验证实现。
+- Comb/Seq 还没有生成完整可执行行为，但聚合 `hw.bitcast` 阻塞已消除；当前首个缺口已推进到
+  `sim.fmt.literal`。
+- 顶层 Function-TLM 和深度 1 的 7 个 function SystemC 均已验证；深度 2～5 仍待逐层拆解。
 - Verilator 的顶层、engine 和 APB SystemC 模型均可构建，可在 Comb/Seq 未完成时作为 cycle-level
   黑盒和差分参考；它不替代独立的 function golden。

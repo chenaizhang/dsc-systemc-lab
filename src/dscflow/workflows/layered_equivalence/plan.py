@@ -60,6 +60,10 @@ def build_layer_plan(contract: dict[str, Any], config: dict[str, Any]) -> dict[s
             }
         )
     semantic_pairs = config.get("semantic_pairs", [])
+    top_down_complete = all(item["pass"] for item in depth_summary)
+    declared_pairs_complete = bool(semantic_pairs) and all(
+        str(item.get("status")) == "verified" for item in semantic_pairs
+    )
     return {
         "format": "dsc-layered-function-equivalence-plan",
         "version": "1.0.0",
@@ -68,9 +72,9 @@ def build_layer_plan(contract: dict[str, Any], config: dict[str, Any]) -> dict[s
         "instances": rows,
         "depth_summary": depth_summary,
         "semantic_pairs": semantic_pairs,
-        "top_down_complete": all(item["pass"] for item in depth_summary),
-        "bottom_up_complete": bool(semantic_pairs)
-        and all(str(item.get("status")) == "verified" for item in semantic_pairs),
+        "top_down_complete": top_down_complete,
+        "declared_semantic_pairs_complete": declared_pairs_complete,
+        "bottom_up_complete": top_down_complete and declared_pairs_complete,
         "claim_boundary": (
             "A generated FunctionSlot is only an integration point.  A module becomes "
             "verified only after shared-stimulus comparison against its parent function "

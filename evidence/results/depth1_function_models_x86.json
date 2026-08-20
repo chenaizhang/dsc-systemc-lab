@@ -1,0 +1,51 @@
+{
+  "format": "dsc-depth1-function-systemc-verification",
+  "version": "1.0.0",
+  "verified_at": "2026-08-20T19:36:07+08:00",
+  "environment": {
+    "architecture": "x86_64",
+    "cxx": "GNU 15.2.0",
+    "systemc": "3.0.2"
+  },
+  "structure": {
+    "top": "dsc_function_tlm::DscLayeredFunctionTlm",
+    "depth_1_module_count": 7,
+    "modules": [
+      "dsce_apb",
+      "dsce_timers",
+      "dsce_interrupt",
+      "dsce_pps",
+      "dsce_command",
+      "dsce_reset",
+      "dsce_engine"
+    ],
+    "runtime_exact_child_set": true,
+    "child_processes": 0
+  },
+  "checks": {
+    "compile_werror": true,
+    "contract_ctest": "2/2 passed",
+    "flat_vs_layered_shared_transaction_differential": true,
+    "compared_observables": [
+      "TLM response",
+      "annotated delay",
+      "compressed bytes",
+      "output sideband",
+      "codec status",
+      "active state",
+      "frame counter",
+      "interrupt cause and clear-on-read"
+    ],
+    "vesa_cli_adapter_flat_tlm_layered_tlm_byte_exact": true,
+    "vesa_profile": "RGB 4:4:4, 8 bpc, 8 bpp, 192x108, two 96x108 slices",
+    "compressed_payload_bytes": 20736
+  },
+  "source_sha256": {
+    "dsc_layered_function_tlm.hpp": "855cd80d54988dc081738db0e38ce1f85a25f965e3030d93d66cac65aaf6b206",
+    "layered_function_contract.cpp": "b4ed3170ac169aa25fe7341da7633ebf4a8cfc1891136cb0fc730858726b8d7a",
+    "depth1_contracts.json": "7becf1e787b33ab06a951aa3e6cffad92be8f7fded9c5ea46fcc6fa3675161df",
+    "vesa_reference_codec_contract.cpp": "7aa6855302e1f42b02032c95e3720c439720e8bc91c3b2fe8d8f2f3b7f9ed83b"
+  },
+  "pass": true,
+  "claim_boundary": "The seven functions are verified as a depth-1 transaction-level decomposition of the flat Function-TLM and preserve the qualified VESA end-to-end output. They are not yet proven cycle-equivalent to the corresponding RTL modules."
+}

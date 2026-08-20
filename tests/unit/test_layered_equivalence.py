@@ -108,6 +108,23 @@ def test_cycle_model_is_not_misreported_as_function_reference() -> None:
     assert plan["depth_summary"][1]["missing"] == 1
 
 
+def test_verified_partial_pair_does_not_claim_global_bottom_up_completion() -> None:
+    contract = build_uhdm_structure_contract(_structure(), _hierarchy())
+    plan = build_layer_plan(
+        contract,
+        {
+            "implementations": {
+                "top": {"kind": "function", "status": "verified"},
+                "leaf": {"kind": "function", "status": "missing"},
+            },
+            "semantic_pairs": [{"status": "verified", "scope": "depth_0"}],
+        },
+    )
+    assert plan["declared_semantic_pairs_complete"] is True
+    assert plan["top_down_complete"] is False
+    assert plan["bottom_up_complete"] is False
+
+
 def test_trace_comparator_reports_first_cycle_and_field(tmp_path: Path) -> None:
     paths = [tmp_path / "reference.csv", tmp_path / "candidate.csv"]
     for path, values in zip(paths, [["10", "11"], ["10", "12"]], strict=True):

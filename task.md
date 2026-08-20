@@ -1,14 +1,13 @@
-# DSC 数据通路定位与 cycle SystemC 替换任务
+# 分层 SystemC 等价建模任务
 
 ## 目标
 
-在 x86 服务器上沿同一份 PPM、PPS 和 APB/AXI-Stream stimulus，继续完成以下工作：
+在 x86 服务器上完成两条可汇合的实现线：
 
-1. 从 SPEC 和 RTL 固化 AXI/DSC 独立时钟、帧行标记和输入像素映射契约；
-2. 对 `dsce_engine` 的 pack、partition、slice 和 slice-mux 边界记录逐周期握手及行尾信息；
-3. 确定压缩输出短缺和成对重复首次出现的模块边界；
-4. 只有在行为契约有证据时，生成并替换对应 cycle SystemC 模块；
-5. 修复 UHDM generate-scope 层次导出，并隔离 CIRCT 首个不支持 operation。
+1. 修复 CIRCT 完整 HW→SystemC 转换中由聚合 `hw.bitcast` 暴露的 LLHD/聚合类型降级缺口，并继续记录后续首个不支持 operation；
+2. 为顶层直属的 7 个子模块建立有证据来源的 function contract、可执行 SystemC function model 和端到端等价门禁；
+3. 保持 CIRCT 结构骨架与 UHDM reference 层次自动对比；
+4. 为后续从底层开始用 Comb/Seq 生成模块替换 function model 保留统一接口。
 
 ## 事实边界
 
@@ -20,9 +19,9 @@
 
 ## 验收
 
-- 机器结果记录测试时钟比例、RAM 模型语义、输入摘要、边界计数和首个异常边界；
-- pack、partition、每个 slice 和 slice-mux 至少有 valid/ready/last 或 line 的逐周期计数；
-- 如缺少外部契约，生成可直接询问项目成员的中文问题清单，不伪造结论；
-- UHDM 层次导出能遍历 generate scope，或保存可复现失败证据；
-- CIRCT 缺口具有最小复现或明确的首个不支持 operation；
-- Python 回归与 x86 一键验证均通过。
+- CIRCT fork 对最小 `hw.bitcast` 复现和真实 DSC 输入均有自动回归；
+- 完整转换越过现有聚合 `hw.bitcast` 阻塞点，并保存新的首个失败点或可编译产物；
+- 7 个直属子模块均具有输入、输出、状态、时序、错误行为和证据来源明确的 contract；
+- 分层 function SystemC 可编译、可运行，并与顶层 reference model 使用同一测试数据做端到端比较；
+- 没有独立参考证据的模块不得标记为语义通过；
+- UHDM/SystemC 层次对比、Python 回归与 x86 一键验证均通过。

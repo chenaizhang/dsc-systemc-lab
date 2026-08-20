@@ -1,0 +1,54 @@
+{
+  "format": "circt-llhd-systemc-lowering-verification",
+  "version": "1.0.0",
+  "verified_at": "2026-08-20T19:36:07+08:00",
+  "environment": {
+    "architecture": "x86_64",
+    "circt_fork_branch": "codex/systemc-backend"
+  },
+  "real_design": {
+    "top": "dsc_encoder",
+    "input_operation_counts": {
+      "comb": 16412,
+      "seq": 540,
+      "llhd": 433
+    },
+    "standard_llhd_to_core_pass": true,
+    "remaining_process_lowering_pass": true,
+    "timed_processes_lowered": 6,
+    "combinational_processes_lowered": 4,
+    "remaining_behavioral_llhd_operations": 0,
+    "remaining_dead_llhd_constant_time_operations": 8,
+    "previous_first_failure": "hw.bitcast",
+    "previous_first_failure_removed": true,
+    "current_first_failure": "sim.fmt.literal",
+    "hw_structure_compile": true,
+    "hw_structure_runtime_modules": 261,
+    "verilator_fallback_ready": true
+  },
+  "integrated_pipeline": {
+    "status": "completed_with_verilator_fallback",
+    "prepare_llhd_core": true,
+    "lower_remaining_llhd_processes": true,
+    "full_hw_comb_seq_to_systemc": false,
+    "lowered_ir_sha256": "c03865d8847fe6a77f6d54a544e2965788a408d08ff6141a9478e20c3c7417ad"
+  },
+  "regression": {
+    "targeted_llhd_lit": "1/1 passed",
+    "check_circt": {
+      "discovered": 1639,
+      "passed": 1628,
+      "expected_failed": 6,
+      "skipped": 5,
+      "unexpected_failed": 0
+    }
+  },
+  "source_sha256": {
+    "LowerTimedProcesses.cpp": "af809b8cde5bbd1d511b89827514f2fac3c9ce14b46025549ddea1c4f4c9ba4d",
+    "HWToSystemC.cpp": "c7c5c912730cc647c4ee870835415252ba5f837f0f0841694c6687324dca8fc9",
+    "lower-timed-processes.mlir": "420c6d53c711ec319c252f19e7f1ebeaf8d0da09e64f6491e8f7b01c5fd666c0",
+    "staged_circt_runner.py": "38f74075b7a43710cb261b46597f2aa768f1ba58cbdf5d93f74432e7789d456b"
+  },
+  "pass": true,
+  "claim_boundary": "The aggregate hw.bitcast blocker is removed after lowering the remaining LLHD timed and combinational processes. Native SystemC is not complete because simulation formatting operations are the next unsupported conversion family."
+}

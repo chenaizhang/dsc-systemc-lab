@@ -24,6 +24,8 @@ export LD_LIBRARY_PATH="$library_path${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 for case_name in llhd_coroutine_task function_control; do
   source_file="$repo_root/tests/fixtures/circt/$case_name.sv"
   core_ir="$work_dir/$case_name.hw.mlir"
+  llhd_core_ir="$work_dir/$case_name.llhd-core.mlir"
+  llhd_lowered_ir="$work_dir/$case_name.llhd-lowered.mlir"
   structure_ir="$work_dir/$case_name.structure.systemc.mlir"
   structure_cpp="$work_dir/$case_name.structure.systemc.hpp"
 
@@ -34,8 +36,13 @@ for case_name in llhd_coroutine_task function_control; do
   "$cxx" -std=c++17 -x c++ -fsyntax-only \
     $(pkg-config --cflags systemc) "$structure_cpp"
 
+  "$optimizer" --pass-pipeline='builtin.module(hw.module(llhd-wrap-procedural-ops),llhd-inline-calls,llhd-inline-suspend-free-coroutines,symbol-dce,hw.module(sroa,llhd-mem2reg,llhd-hoist-signals,llhd-deseq,llhd-lower-processes,cse,canonicalize,llhd-unroll-loops,cse,canonicalize,llhd-remove-control-flow,cse,canonicalize,map-arith-to-comb{enable-best-effort-lowering=true},llhd-combine-drives,llhd-sig2reg,cse,canonicalize))' \
+    "$core_ir" -o "$llhd_core_ir"
+  "$optimizer" --mlir-disable-threading --llhd-lower-timed-processes \
+    "$llhd_core_ir" -o "$llhd_lowered_ir"
+
   set +e
-  "$optimizer" --convert-hw-to-systemc "$core_ir" \
+  "$optimizer" --convert-hw-to-systemc "$llhd_lowered_ir" \
     -o "$work_dir/$case_name.full.systemc.mlir" \
     >"$evidence_dir/$case_name.full.stdout.log" \
     2>"$evidence_dir/$case_name.full.stderr.log"
@@ -43,6 +50,7 @@ for case_name in llhd_coroutine_task function_control; do
   set -e
   printf '%s\n' "$full_status" >"$evidence_dir/$case_name.full.status"
   cp "$core_ir" "$evidence_dir/$case_name.hw.mlir"
+  cp "$llhd_lowered_ir" "$evidence_dir/$case_name.llhd-lowered.mlir"
   cp "$structure_ir" "$evidence_dir/$case_name.structure.systemc.mlir"
 done
 

@@ -1,4 +1,5 @@
 #include "vesa_reference_codec.hpp"
+#include "dsc_layered_function_tlm.hpp"
 
 #include <systemc>
 #include <tlm>
@@ -218,12 +219,20 @@ int sc_main(int argc, char** argv)
         const auto request = make_request(image, dsc_file);
 
         dsc_function_tlm::VesaReferenceCodec codec(true);
+        dsc_function_tlm::VesaReferenceCodec layered_codec(true);
         dsc_function_tlm::DscFunctionTlm model("dsc_function_model", &codec);
+        dsc_function_tlm::DscLayeredFunctionTlm layered_model(
+            "dsc_layered_function_model", &layered_codec);
         TlmDriver driver("driver");
+        TlmDriver layered_driver("layered_driver");
         TlmSink sink("sink");
+        TlmSink layered_sink("layered_sink");
         driver.apb.bind(model.apb);
         driver.pixel.bind(model.pixel_stream_in);
         model.bitstream_out.bind(sink.target);
+        layered_driver.apb.bind(layered_model.apb);
+        layered_driver.pixel.bind(layered_model.pixel_stream_in);
+        layered_model.bitstream_out.bind(layered_sink.target);
         sc_core::sc_start(sc_core::SC_ZERO_TIME);
 
         const auto result = codec.encode(request);
@@ -248,19 +257,23 @@ int sc_main(int argc, char** argv)
             }
             return 4;
         }
-        if (!driver.configure(request.pps)) {
-            std::cerr << "failed to configure the TLM function model\n";
+        if (!driver.configure(request.pps) || !layered_driver.configure(request.pps)) {
+            std::cerr << "failed to configure a TLM function model\n";
             return 6;
         }
         for (const auto& beat : request.beats) {
-            if (!driver.send(beat)) {
-                std::cerr << "TLM function model rejected an input beat: "
-                          << model.last_diagnostic() << '\n';
+            if (!driver.send(beat) || !layered_driver.send(beat)) {
+                std::cerr << "a TLM function model rejected an input beat: flat="
+                          << model.last_diagnostic() << ", layered="
+                          << layered_model.last_diagnostic() << '\n';
                 return 7;
             }
         }
-        if (sink.saw_placeholder || sink.bytes != expected || model.encoded_frame_count() != 1) {
-            std::cerr << "TLM wrapper output differs from the approved software function output\n";
+        if (sink.saw_placeholder || layered_sink.saw_placeholder
+            || sink.bytes != expected || layered_sink.bytes != expected
+            || sink.bytes != layered_sink.bytes || model.encoded_frame_count() != 1
+            || layered_model.encoded_frame_count() != 1) {
+            std::cerr << "flat or layered TLM output differs from the approved software function output\n";
             return 8;
         }
         std::cout << "PASS bytes=" << result.bitstream.size() << '\n';

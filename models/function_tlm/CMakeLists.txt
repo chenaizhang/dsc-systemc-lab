@@ -65,3 +65,8 @@ add_executable(dsc_function_tlm_contract tests/dsc_function_tlm_contract.cpp)
 target_link_libraries(dsc_function_tlm_contract PRIVATE dsc_function_tlm)
 target_compile_options(dsc_function_tlm_contract PRIVATE -Wall -Wextra -Wpedantic -Werror)
 add_test(NAME dsc_function_tlm_contract COMMAND dsc_function_tlm_contract)
+
+add_executable(layered_function_contract tests/layered_function_contract.cpp)
+target_link_libraries(layered_function_contract PRIVATE dsc_function_tlm)
+target_compile_options(layered_function_contract PRIVATE -Wall -Wextra -Wpedantic -Werror)
+add_test(NAME layered_function_contract COMMAND layered_function_contract)

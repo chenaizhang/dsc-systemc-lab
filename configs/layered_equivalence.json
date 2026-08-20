@@ -17,11 +17,55 @@
       ]
     },
     "dsce_apb": {
-      "kind": "cycle_systemc",
+      "kind": "depth1_function_systemc",
       "status": "verified",
-      "counts_as_function_reference": false,
-      "evidence": ["evidence/results/hybrid_differential_x86.json"]
+      "counts_as_function_reference": true,
+      "evidence": ["evidence/results/depth1_function_models_x86.json"]
+    },
+    "dsce_timers": {
+      "kind": "depth1_function_systemc",
+      "status": "verified",
+      "counts_as_function_reference": true,
+      "evidence": ["evidence/results/depth1_function_models_x86.json"]
+    },
+    "dsce_interrupt": {
+      "kind": "depth1_function_systemc",
+      "status": "verified",
+      "counts_as_function_reference": true,
+      "evidence": ["evidence/results/depth1_function_models_x86.json"]
+    },
+    "dsce_pps": {
+      "kind": "depth1_function_systemc",
+      "status": "verified",
+      "counts_as_function_reference": true,
+      "evidence": ["evidence/results/depth1_function_models_x86.json"]
+    },
+    "dsce_command": {
+      "kind": "depth1_function_systemc",
+      "status": "verified",
+      "counts_as_function_reference": true,
+      "evidence": ["evidence/results/depth1_function_models_x86.json"]
+    },
+    "dsce_reset": {
+      "kind": "depth1_function_systemc",
+      "status": "verified",
+      "counts_as_function_reference": true,
+      "evidence": ["evidence/results/depth1_function_models_x86.json"]
+    },
+    "dsce_engine": {
+      "kind": "depth1_function_systemc",
+      "status": "verified",
+      "counts_as_function_reference": true,
+      "evidence": ["evidence/results/depth1_function_models_x86.json"]
     }
   },
-  "semantic_pairs": []
+  "semantic_pairs": [
+    {
+      "reference": "dsc_function_tlm::DscFunctionTlm",
+      "candidate": "dsc_function_tlm::DscLayeredFunctionTlm",
+      "scope": "depth_1_transaction_behavior",
+      "status": "verified",
+      "evidence": "evidence/results/depth1_function_models_x86.json"
+    }
+  ]
 }

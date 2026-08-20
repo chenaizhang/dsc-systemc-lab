@@ -23,8 +23,8 @@
 | UHDM 层次 | x86 完整通过 | 261 实例、3,243 端口和 3,155 具名绑定形成权威结构参考 |
 | CIRCT core IR | x86 已生成 | HW/Comb/Seq/LLHD 分析入口有效 |
 | CIRCT HW SystemC | x86 完整通过 | 50 个 `SC_MODULE`、89 条定义级实例边，运行时展开 261 实例 |
-| CIRCT Comb/Seq SystemC | 未闭环 | 完整转换先卡在 aggregate `hw.bitcast`，不能声称行为已生成 |
-| 分层 Function SystemC | 框架已完成 | 顶层 function 已验证；深度 1～5 的子模块 function 尚未验证 |
+| CIRCT Comb/Seq SystemC | 未闭环 | LLHD 聚合降级已越过 `hw.bitcast`；当前首错为 `sim.fmt.literal` |
+| 分层 Function SystemC | 深度 1 已验证 | 顶层与 7 个直属子模块通过事务级和 VESA golden 差分；深度 2～5 待验证 |
 | Verilator-SystemC | x86 已跑单体及 7 模块网络 | 共享 stimulus 下，拆分结构与单体逐周期一致 |
 | Agent cycle SystemC | `CycleApb` 已真实替换 | 与 Verilator APB 网络逐周期一致；其余模块仍为黑盒 |
 | RTL vs VESA golden | 功能门禁失败 | 安全 overlay 后三路输出 20,232 字节，golden 为 20,736 字节；首差异 byte 254 |

@@ -482,21 +482,83 @@ def _circt_flow(
             "07c_compile_hw_structure_runtime_probe",
         )
 
-    systemc_ir = stage_dir / f"{config['top']}.systemc.mlir"
-    conversion = run_command(
-        "08_full_hw_comb_seq_to_systemc",
+    llhd_core_ir = stage_dir / f"{config['top']}.llhd-core.mlir"
+    llhd_core_pipeline = (
+        "builtin.module("
+        "hw.module(llhd-wrap-procedural-ops),"
+        "llhd-inline-calls,llhd-inline-suspend-free-coroutines,symbol-dce,"
+        "hw.module(sroa,llhd-mem2reg,llhd-hoist-signals,llhd-deseq,"
+        "llhd-lower-processes,cse,canonicalize,llhd-unroll-loops,cse,"
+        "canonicalize,llhd-remove-control-flow,cse,canonicalize,"
+        "map-arith-to-comb{enable-best-effort-lowering=true},"
+        "llhd-combine-drives,llhd-sig2reg,cse,canonicalize))"
+    )
+    llhd_core = run_command(
+        "08a_prepare_llhd_core",
         [
             str(circt_opt),
-            "--convert-hw-to-systemc",
+            f"--pass-pipeline={llhd_core_pipeline}",
             str(conversion_input),
             "-o",
-            str(systemc_ir),
+            str(llhd_core_ir),
         ],
         cwd=root,
         output_dir=stage_dir,
         timeout=timeout,
-        artifact=systemc_ir,
+        artifact=llhd_core_ir,
         env=environment,
+    )
+    lowered_llhd_ir = stage_dir / f"{config['top']}.llhd-lowered.mlir"
+    llhd_remaining = (
+        run_command(
+            "08b_lower_remaining_llhd_processes",
+            [
+                str(circt_opt),
+                "--mlir-disable-threading",
+                "--llhd-lower-timed-processes",
+                str(llhd_core_ir),
+                "-o",
+                str(lowered_llhd_ir),
+            ],
+            cwd=root,
+            output_dir=stage_dir,
+            timeout=timeout,
+            artifact=lowered_llhd_ir,
+            env=environment,
+        )
+        if llhd_core["pass"]
+        else blocked_stage("08b_lower_remaining_llhd_processes", "08a_prepare_llhd_core")
+    )
+    lowered_inventory = None
+    if llhd_remaining["pass"]:
+        lowered_inventory = analyze_core_ir(
+            lowered_llhd_ir.read_text(encoding="utf-8", errors="replace"),
+            str(config["top"]),
+        )
+        write_json(stage_dir / "llhd_lowered_inventory.json", lowered_inventory)
+
+    systemc_ir = stage_dir / f"{config['top']}.systemc.mlir"
+    conversion = (
+        run_command(
+            "08c_full_hw_comb_seq_to_systemc",
+            [
+                str(circt_opt),
+                "--convert-hw-to-systemc",
+                str(lowered_llhd_ir),
+                "-o",
+                str(systemc_ir),
+            ],
+            cwd=root,
+            output_dir=stage_dir,
+            timeout=timeout,
+            artifact=systemc_ir,
+            env=environment,
+        )
+        if llhd_remaining["pass"]
+        else blocked_stage(
+            "08c_full_hw_comb_seq_to_systemc",
+            "08b_lower_remaining_llhd_processes",
+        )
     )
     conversion_failure = None if conversion["pass"] else classify_circt_failure(
         _stderr(conversion), "hw_to_systemc"
@@ -529,7 +591,7 @@ def _circt_flow(
     else:
         systemc_cpp = None
         emission = blocked_stage(
-            "09_export_full_systemc", "08_full_hw_comb_seq_to_systemc"
+            "09_export_full_systemc", "08c_full_hw_comb_seq_to_systemc"
         )
         emission_failure = None
 
@@ -567,7 +629,7 @@ def _circt_flow(
             "module_count": len(partitions["comb_modules"]),
             "native_completion": conversion["pass"] and emission["pass"],
             "blocked_by": (
-                None if conversion["pass"] else "08_full_hw_comb_seq_to_systemc"
+                None if conversion["pass"] else "08c_full_hw_comb_seq_to_systemc"
             ),
         },
         "seq": {
@@ -576,15 +638,29 @@ def _circt_flow(
             "module_count": len(partitions["seq_modules"]),
             "native_completion": conversion["pass"] and emission["pass"],
             "blocked_by": (
-                None if conversion["pass"] else "08_full_hw_comb_seq_to_systemc"
+                None if conversion["pass"] else "08c_full_hw_comb_seq_to_systemc"
             ),
         },
         "llhd": {
             "ssa_extracted": inventory["dialect_totals"]["llhd"] > 0,
             "operation_count": inventory["dialect_totals"]["llhd"],
             "module_count": len(partitions["llhd_modules"]),
+            "lowering_pass": llhd_remaining["pass"],
+            "remaining_operation_count": (
+                lowered_inventory["dialect_totals"]["llhd"]
+                if lowered_inventory
+                else None
+            ),
+            "remaining_module_count": (
+                len(lowered_inventory["stage_partitions"]["llhd_modules"])
+                if lowered_inventory
+                else None
+            ),
             "first_failure_operation": (
-                conversion_failure.get("operation") if conversion_failure else None
+                conversion_failure.get("operation")
+                if conversion_failure
+                and str(conversion_failure.get("operation", "")).startswith("llhd.")
+                else None
             ),
         },
         "emission": {"pass": emission["pass"], "failure": emission_failure},
@@ -610,6 +686,8 @@ def _circt_flow(
             "systemc_runtime_flags": runtime_flags,
             "compile_hw_structure_runtime_probe": runtime_compile,
             "run_hw_structure_runtime_probe": runtime_run,
+            "prepare_llhd_core": llhd_core,
+            "lower_remaining_llhd_processes": llhd_remaining,
             "full_hw_comb_seq_to_systemc": conversion,
             "export_full_systemc": emission,
         },
@@ -622,6 +700,15 @@ def _circt_flow(
             ),
             "structure_systemc_cpp": (
                 str(structure_cpp.resolve()) if structure_cpp else None
+            ),
+            "llhd_core_ir": str(llhd_core_ir.resolve()) if llhd_core["pass"] else None,
+            "llhd_lowered_ir": (
+                str(lowered_llhd_ir.resolve()) if llhd_remaining["pass"] else None
+            ),
+            "llhd_lowered_inventory": (
+                str((stage_dir / "llhd_lowered_inventory.json").resolve())
+                if lowered_inventory
+                else None
             ),
             "systemc_ir": str(systemc_ir.resolve()) if conversion["pass"] else None,
             "systemc_cpp": str(systemc_cpp.resolve()) if systemc_cpp else None,
