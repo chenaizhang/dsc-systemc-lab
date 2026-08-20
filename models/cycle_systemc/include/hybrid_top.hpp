@@ -38,6 +38,8 @@ struct HybridTop : sc_core::sc_module {
         // Line-end pulses arriving at the muxword instances (format-internal
         // 3-bit wire from the VLC pipeline).
         std::uint8_t fmt_vlc_last = 0;
+        // word_complete pulses inside the three muxword packers.
+        std::uint8_t muxword_complete = 0;
         std::uint8_t slice_output_valid = 0;
         std::uint8_t slice_output_ready = 0;
         std::uint8_t slice_output_last = 0;
@@ -279,6 +281,13 @@ struct HybridTop : sc_core::sc_module {
                 static_cast<std::uint8_t>(slices[index]->dsce_format_inst__DOT__i_valid_mw);
             probe.fmt_vlc_last |=
                 static_cast<std::uint8_t>(slices[index]->dsce_format_inst__DOT__i_last_vlc);
+            probe.muxword_complete |=
+                static_cast<std::uint8_t>(slices[index]
+                    ->dsce_format_inst__DOT__gen_vlc__BRA__0__KET____DOT__dsce_muxword_inst__DOT__i_word_complete)
+                | static_cast<std::uint8_t>(slices[index]
+                    ->dsce_format_inst__DOT__gen_vlc__BRA__1__KET____DOT__dsce_muxword_inst__DOT__i_word_complete) << 1
+                | static_cast<std::uint8_t>(slices[index]
+                    ->dsce_format_inst__DOT__gen_vlc__BRA__2__KET____DOT__dsce_muxword_inst__DOT__i_word_complete) << 2;
         }
         return probe;
     }

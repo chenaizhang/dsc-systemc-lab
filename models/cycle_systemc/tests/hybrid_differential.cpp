@@ -63,6 +63,10 @@ struct EngineBoundaryCounts {
     std::array<std::uint64_t, 4> predict_last{};
     std::uint64_t fmt_muxword_words = 0;
     std::uint64_t fmt_vlc_last_pulses = 0;
+    std::uint64_t muxword_complete_pulses = 0;
+    std::uint64_t muxword_complete_edges = 0;
+    std::uint64_t muxword_complete_aligned = 0;
+    std::uint8_t prev_muxword_complete = 0;
     std::array<std::uint64_t, 4> slice_output_accept{};
     std::array<std::uint64_t, 4> slice_output_last{};
     std::uint64_t mux_accept = 0;
@@ -402,7 +406,16 @@ struct Simulation {
                 ++engine_counts.fmt_muxword_words;
             if ((probe.fmt_vlc_last >> bit) & 1U)
                 ++engine_counts.fmt_vlc_last_pulses;
+            if ((probe.muxword_complete >> bit) & 1U)
+                ++engine_counts.muxword_complete_pulses;
+            auto rising = static_cast<unsigned>(
+                (probe.muxword_complete & ~engine_counts.prev_muxword_complete) >> bit) & 1U;
+            engine_counts.muxword_complete_edges += rising;
+            auto aligned = static_cast<unsigned>(
+                (probe.muxword_complete & probe.fmt_muxword_valid) >> bit) & 1U;
+            engine_counts.muxword_complete_aligned += aligned;
         }
+        engine_counts.prev_muxword_complete = probe.muxword_complete;
         if (probe.slice_buffer_valid || probe.slice_buffer_last || probe.flatness_valid
             || probe.flatness_last || probe.predict_valid || probe.predict_last) {
             engine_dsc_trace << dsc_cycles << ',' << cycles << ',' << phase << ','
@@ -741,6 +754,9 @@ int sc_main(int argc, char** argv)
                << ',' << simulation.engine_counts.slice_output_last[2] << ',' << simulation.engine_counts.slice_output_last[3]
                << "], \"fmt_muxword_words\": " << simulation.engine_counts.fmt_muxword_words
                << ", \"fmt_vlc_last_pulses\": " << simulation.engine_counts.fmt_vlc_last_pulses
+               << ", \"muxword_complete_pulses\": " << simulation.engine_counts.muxword_complete_pulses
+               << ", \"muxword_complete_edges\": " << simulation.engine_counts.muxword_complete_edges
+               << ", \"muxword_complete_aligned\": " << simulation.engine_counts.muxword_complete_aligned
                << ", \"mux_accept\": " << simulation.engine_counts.mux_accept
                << ", \"mux_line\": " << simulation.engine_counts.mux_line
                << ", \"mux_frame\": " << simulation.engine_counts.mux_frame

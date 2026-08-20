@@ -122,7 +122,19 @@
    "vlc_last_pulses": 648,
    "result": "diagnostic_only",
    "finding": "all 648 expected line-end pulses (108x3x2) reach the muxword; the word deficit (3,339 vs 3,456) therefore originates inside the muxword packing itself: the final partial word of a line is carried into the next line instead of being emitted, and the per-chunk data diverges from the golden from line 1 slice 0 (byte 254)"
+  },
+  {
+   "name": "muxword_word_complete_probe",
+   "overlays": [],
+   "bytes": 20232,
+   "line_markers": 210,
+   "fmt_muxword_words": 3339,
+   "muxword_complete_edges": 3297,
+   "muxword_complete_aligned": 158,
+   "vlc_last_pulses": 648,
+   "result": "diagnostic_only",
+   "finding": "bit-conserving but word-boundary-shifting: 3,297 word completions vs 3,456 expected (159 words carried across line ends); all 648 line-end pulses arrive; the RTL VLC emits line-end unit sizes that complete the word instead of leaving the 1-15 pad bits the golden expects, so the divergence originates in the VLC/rate buffer line-end bit accounting rather than format/stream framing"
   }
  ],
- "remaining_external_evidence": "muxword-internal event probe (word_complete / staging / bits_in_word at line ends) is the next instrumentation step; the backpressure and line-end emission overlays are in place and validated to not regress the baseline"
+ "remaining_external_evidence": "VLC line-end unit-size semantics: the RTL's dsce_vlc/dsce_muxword pair carries line-end remainder bits into the next line instead of zero-completing the final muxword; per the DSC contract each line must end on a zero-padded muxword boundary"
 }
