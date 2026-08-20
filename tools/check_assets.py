@@ -7,11 +7,10 @@ import sys
 from pathlib import Path
 from typing import Any
 
-
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from dscflow.workflows.uhdm_systemc.contract import build_uhdm_structure_contract  # noqa: E402
+from dscflow.workflows.uhdm_systemc.contract import build_uhdm_structure_contract
 
 
 def digest(path: Path) -> str:

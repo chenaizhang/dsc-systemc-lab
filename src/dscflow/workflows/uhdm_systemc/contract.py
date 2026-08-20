@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -24,7 +25,87 @@ def stable_digest(value: Any) -> str:
     return hashlib.sha256(payload).hexdigest()
 
 
-def build_uhdm_structure_contract(ir: dict[str, Any]) -> dict[str, Any]:
+def _definition_name(name: Any) -> str:
+    return str(name or "").split("@", 1)[-1]
+
+
+def _canonical_instance_path(full_name: Any, fallback: str) -> str:
+    value = str(full_name or fallback)
+    return value.replace("work@", "")
+
+
+def _walk_hierarchy(
+    node: dict[str, Any],
+    parent_path: str | None = None,
+    parent_systemc_path: str | None = None,
+    depth: int = 0,
+):
+    module = _definition_name(node.get("definition_name"))
+    name = _definition_name(node.get("instance_name"))
+    fallback = module if parent_path is None else f"{parent_path}.{name}"
+    path = _canonical_instance_path(node.get("full_name"), fallback)
+    if parent_path is None and not path:
+        path = module
+    if parent_path is None:
+        local_name = module
+        systemc_path = module
+    else:
+        prefix = f"{parent_path}."
+        local_name = path[len(prefix) :] if path.startswith(prefix) else name
+        systemc_name = re.sub(r"[^A-Za-z0-9_]", "_", local_name)
+        systemc_path = f"{parent_systemc_path}.{systemc_name}"
+    yield node, path, parent_path, local_name, systemc_path, depth
+    for child in node.get("children", []):
+        if isinstance(child, dict):
+            yield from _walk_hierarchy(child, path, systemc_path, depth + 1)
+
+
+def _hierarchy_instances(
+    hierarchy: dict[str, Any], width_modules: dict[str, dict[str, Any]]
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    designs = hierarchy.get("designs")
+    if not isinstance(designs, list) or len(designs) != 1:
+        raise StructureContractError("UHDM hierarchy must contain exactly one design")
+    roots = designs[0].get("top_modules", [])
+    if not isinstance(roots, list) or len(roots) != 1:
+        raise StructureContractError("UHDM hierarchy must contain exactly one top")
+
+    graph: list[dict[str, Any]] = []
+    edges: list[dict[str, Any]] = []
+    for node, path, parent_path, local_name, systemc_path, depth in _walk_hierarchy(roots[0]):
+        module = _definition_name(node.get("definition_name"))
+        if module not in width_modules:
+            raise StructureContractError(f"hierarchy references unknown module {module}")
+        bindings = []
+        for port in node.get("ports", []):
+            bindings.append(
+                {
+                    "port": port.get("name"),
+                    "connection": port.get("connection_name") or None,
+                    "connection_full_name": port.get("connection_full_name") or None,
+                    "connected": bool(port.get("connected")),
+                    "source_file": port.get("source_file"),
+                    "source_line": port.get("source_line"),
+                }
+            )
+        item = {
+            "name": local_name,
+            "path": path,
+            "systemc_path": systemc_path,
+            "parent_path": parent_path,
+            "module": module,
+            "depth": depth,
+            "bindings": bindings,
+        }
+        graph.append(item)
+        if parent_path is not None:
+            edges.append(item)
+    return graph, edges
+
+
+def build_uhdm_structure_contract(
+    ir: dict[str, Any], hierarchy: dict[str, Any] | None = None
+) -> dict[str, Any]:
     """Strip non-structural supplements from a validated UHDM framework IR.
 
     Widths are retained only as code-generation hints.  They are deliberately
@@ -102,9 +183,46 @@ def build_uhdm_structure_contract(ir: dict[str, Any]) -> dict[str, Any]:
         )
         type_hints[name] = hints
 
+    width_modules = {item["name"]: item for item in structural_modules}
+    instance_graph: list[dict[str, Any]] = []
+    instance_edges: list[dict[str, Any]] = []
+    if hierarchy is not None:
+        instance_graph, instance_edges = _hierarchy_instances(hierarchy, width_modules)
+
+        # Keep one elaborated child layout per module type for code generation.
+        # The DSC design has no parameter variant with a different child layout;
+        # reject such a case instead of silently choosing one.
+        layouts: dict[str, tuple[tuple[str, str], ...]] = {}
+        children_by_parent = {
+            parent["path"]: [
+                child for child in instance_edges if child["parent_path"] == parent["path"]
+            ]
+            for parent in instance_graph
+        }
+        for parent in instance_graph:
+            children = children_by_parent[parent["path"]]
+            layout = tuple((child["name"], child["module"]) for child in children)
+            previous = layouts.setdefault(parent["module"], layout)
+            if previous != layout:
+                raise StructureContractError(
+                    f"module {parent['module']} has multiple elaborated child layouts"
+                )
+            module_contract = width_modules[parent["module"]]
+            if not module_contract["instances"] and children:
+                module_contract["instances"] = [
+                    {
+                        "name": child["name"],
+                        "path": child["path"],
+                        "module": child["module"],
+                        "bindings": child["bindings"],
+                    }
+                    for child in children
+                ]
+
     structural_view = {
         "top": ir.get("top"),
         "modules": structural_modules,
+        "instance_graph": instance_graph,
     }
     fingerprint = stable_digest(structural_view)
     return {
@@ -120,6 +238,14 @@ def build_uhdm_structure_contract(ir: dict[str, Any]) -> dict[str, Any]:
         "source_structure_fingerprint": ir.get("structural_fingerprint"),
         "structural_fingerprint": fingerprint,
         "modules": structural_modules,
+        "instance_graph": instance_graph,
+        "instance_count": len(instance_graph),
+        "binding_count": sum(
+            1
+            for item in instance_edges
+            for binding in item["bindings"]
+            if binding.get("connection") or binding.get("connection_full_name")
+        ),
         "non_authoritative_type_hints": type_hints,
     }
 
@@ -129,6 +255,9 @@ def contract_module_map(contract: dict[str, Any]) -> dict[str, dict[str, Any]]:
 
 
 def expected_instance_paths(contract: dict[str, Any]) -> set[str]:
+    graph = contract.get("instance_graph", [])
+    if graph:
+        return {str(item.get("systemc_path") or item["path"]) for item in graph}
     result = {str(contract["top"])}
     for module in contract.get("modules", []):
         for instance in module.get("instances", []):
@@ -140,6 +269,13 @@ def expected_instance_paths(contract: dict[str, Any]) -> set[str]:
 
 def expected_port_paths(contract: dict[str, Any]) -> set[str]:
     modules = contract_module_map(contract)
+    graph = contract.get("instance_graph", [])
+    if graph:
+        return {
+            f"{instance.get('systemc_path') or instance['path']}.{port['name']}"
+            for instance in graph
+            for port in modules[str(instance["module"])].get("ports", [])
+        }
     result: set[str] = set()
     top = str(contract["top"])
     for port in modules[top].get("ports", []):

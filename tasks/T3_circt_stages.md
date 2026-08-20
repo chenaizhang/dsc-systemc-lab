@@ -21,13 +21,12 @@
 ## 当前进度
 
 - 真实 DSC 的 SV frontend → HW/Comb/Seq/LLHD core IR 已通过。
-- `convert-hw-to-systemc` 首先失败于 package task 产生的 `llhd.coroutine`。
-- `tests/fixtures/circt/llhd_coroutine_task.sv` 已把问题缩成一个 task 和一次调用；CIRCT 1.155.0
-  稳定复现相同 conversion 错误。
-- 将等价 task 改成 function 后，HW→SystemC dialect conversion 成功，随后 C++ emission 失败于
-  `systemc.convert`、`comb.icmp`、`comb.mux`；对照用例为
-  `tests/fixtures/circt/function_control.sv`。
-- 可复现入口为 `scripts/run_circt_min_repros.sh`，日志位于
-  `evidence/results/circt_min_repros/`。
-- 尚未实现 CIRCT conversion/emission patch；在 patch 完成前，原生 cycle SystemC 不能闭环，
-  Verilator-SystemC 仍是可执行黑盒。
+- fork 已新增 `convert-hw-to-systemc="structure-only=true"`，只转换模块、端口、实例、信号、绑定和
+  空 `SC_METHOD`。
+- 真实 DSC HW 骨架生成 50 个模块定义和 89 条定义级实例边；SystemC C++ 编译、运行时
+  elaboration 均通过，展开为 261 个实例，与 UHDM 相同。
+- 完整行为转换首个失败已推进到 aggregate `hw.bitcast`；Comb 16,412、Seq 540、LLHD 433 个
+  operation 均已分区保存。
+- `scripts/run_circt_min_repros.sh` 现在把 HW-only 成功作为硬门禁，并保留完整转换的实际返回码，
+  不再把旧版本的固定失败文本当成验收条件。
+- 原生 cycle SystemC 行为仍未闭环，Verilator-SystemC 继续作为可执行黑盒。

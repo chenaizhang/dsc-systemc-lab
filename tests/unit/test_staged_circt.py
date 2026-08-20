@@ -10,7 +10,11 @@ from dscflow.workflows.staged_circt.mlir import (
     analyze_core_ir,
     classify_circt_failure,
 )
-from dscflow.workflows.staged_circt.runner import _verilator_port_names
+from dscflow.workflows.staged_circt.runner import (
+    _render_systemc_runtime_probe,
+    _verilator_port_names,
+    _write_reduced_systemc_header,
+)
 from dscflow.workflows.staged_circt.utils import run_command
 
 
@@ -178,3 +182,48 @@ def test_verilator_systemc_reference_ports_are_recognized(tmp_path: Path) -> Non
     )
 
     assert _verilator_port_names(header) == ["bist", "cfg", "clk", "data"]
+
+
+def test_circt_runtime_probe_binds_every_top_port(tmp_path: Path) -> None:
+    header = tmp_path / "top.hpp"
+    _write(
+        header,
+        """SC_MODULE(top) {
+  sc_in<bool> clk;
+  sc_out<sc_uint<8>> data;
+  SC_CTOR(top) {}
+};
+""",
+    )
+
+    source = _render_systemc_runtime_probe(header, "top")
+
+    assert 'sc_core::sc_signal<bool> sig_clk{"sig_clk"};' in source
+    assert 'sc_core::sc_signal<sc_uint<8>> sig_data{"sig_data"};' in source
+    assert "dut.clk(sig_clk);" in source
+    assert "dut.data(sig_data);" in source
+
+
+def test_systemc_static_analysis_header_keeps_dependency_closure(tmp_path: Path) -> None:
+    source = tmp_path / "all.hpp"
+    _write(
+        source,
+        """#include <systemc.h>
+SC_MODULE(leaf) { SC_CTOR(leaf) {} };
+SC_MODULE(parent) { leaf child{"child"}; SC_CTOR(parent) {} };
+SC_MODULE(unused) { SC_CTOR(unused) {} };
+""",
+    )
+    output = tmp_path / "selected.hpp"
+
+    _write_reduced_systemc_header(
+        source,
+        ["parent"],
+        {"instances": [{"parent": "parent", "module": "leaf"}]},
+        output,
+    )
+
+    text = output.read_text(encoding="utf-8")
+    assert "SC_MODULE(leaf)" in text
+    assert "SC_MODULE(parent)" in text
+    assert "SC_MODULE(unused)" not in text

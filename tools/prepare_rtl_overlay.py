@@ -194,10 +194,13 @@ def repair_muxword_last(source: str) -> str:
 
 
 def repair_muxword_flush_dedup(source: str) -> str:
-    """Contract fix: at the line end the final word is partial, so stage the
-    zero-padded remainder directly instead of emitting the full word plus a
-    separate flush word (the delivered RTL double-emits and corrupts the
-    chunk count). Expects repair_muxword_last to have been applied first."""
+    """Diagnostic line-end experiment retained as negative evidence.
+
+    The x86 trace proved this branch never fires for the current RTL because
+    the VLC reports a full word at line end.  Do not treat this overlay as an
+    accepted repair; it remains reproducible so the rejected hypothesis cannot
+    silently re-enter the flow.
+    """
     old_block = (
         "                if (kUSE_FLUSH_LOGIC == 1) begin\n"
         "                    if (i_word_complete == 1'b1 || dsc_vlc_last_in == 1'b1) begin\n"

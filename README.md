@@ -20,9 +20,11 @@
 |---|---|---|
 | VESA C adapter + 顶层 Function-TLM | x86 已通过 | 合成 RGB 用例与 VESA CLI 逐字节一致 |
 | 公司测试数据 | 缺失 | 不能声称公司 DSC 配置已功能验证 |
-| UHDM 层次 | 已有结构证据 | 可约束模块、端口、实例和大部分连接 |
+| UHDM 层次 | x86 完整通过 | 261 实例、3,243 端口和 3,155 具名绑定形成权威结构参考 |
 | CIRCT core IR | x86 已生成 | HW/Comb/Seq/LLHD 分析入口有效 |
-| CIRCT 原生 SystemC | 未闭环 | 卡在 `llhd.coroutine`，不能说已生成完整 SC |
+| CIRCT HW SystemC | x86 完整通过 | 50 个 `SC_MODULE`、89 条定义级实例边，运行时展开 261 实例 |
+| CIRCT Comb/Seq SystemC | 未闭环 | 完整转换先卡在 aggregate `hw.bitcast`，不能声称行为已生成 |
+| 分层 Function SystemC | 框架已完成 | 顶层 function 已验证；深度 1～5 的子模块 function 尚未验证 |
 | Verilator-SystemC | x86 已跑单体及 7 模块网络 | 共享 stimulus 下，拆分结构与单体逐周期一致 |
 | Agent cycle SystemC | `CycleApb` 已真实替换 | 与 Verilator APB 网络逐周期一致；其余模块仍为黑盒 |
 | RTL vs VESA golden | 功能门禁失败 | 安全 overlay 后三路输出 20,232 字节，golden 为 20,736 字节；首差异 byte 254 |
@@ -30,7 +32,7 @@
 ## 仓库结构
 
 ```text
-configs/                 两条主流程配置和模型边界
+configs/                 UHDM、CIRCT、分层 function 流程配置和模型边界
 datasets/                五阶段结果集约定；目前无公司向量
 docs/                    中文流程和历史 x86 实测报告
 evidence/                精简保留的 UHDM 结构与机器报告
@@ -76,6 +78,20 @@ dscflow circt run \
   --output-root .work/runs/staged-circt
 ```
 
+生成 UHDM 层次化 FunctionSlot 骨架和逐层语义计划：
+
+```bash
+dscflow layered prepare \
+  --config configs/layered_equivalence.json \
+  --output-dir .work/runs/layered-equivalence
+```
+
+在 x86 上执行结构、HW-only、Comb/Seq、Verilator 和报告汇总的完整门禁：
+
+```bash
+bash scripts/run_layered_equivalence_verification.sh
+```
+
 重新跑 VESA C、C++ adapter 和单顶层 TLM 三路差分：
 
 ```bash
@@ -88,7 +104,9 @@ dscflow circt run \
 bash scripts/run_hybrid_differential_verification.sh
 ```
 
-结果解读见 [中文完整报告](docs/reports/hybrid_differential_x86.md)。
+分层 SystemC 结果见
+[中文完整报告](docs/reports/layered_systemc_equivalence_x86.md)；历史混合差分结果见
+[混合差分报告](docs/reports/hybrid_differential_x86.md)。
 
 当前 format/stream 排障已经把原来的多个确认项压缩为一个资料请求：提供正式 last/flush 实现，
 或一个 slice 连续两行的正确 VCS 边界波形。详见

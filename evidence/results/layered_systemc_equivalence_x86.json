@@ -1,0 +1,169 @@
+{
+  "format": "dsc-layered-systemc-equivalence-x86",
+  "version": "1.0.0",
+  "environment": "x86_64 Linux validation host",
+  "uhdm_reference": {
+    "pass": true,
+    "runtime_module_count": 261,
+    "runtime_port_count": 3243,
+    "systemc_clang_pass": true,
+    "systemc_clang_target_count": 43
+  },
+  "circt_hw_structure": {
+    "pass": true,
+    "definition_count": 50,
+    "definition_edge_count": 89,
+    "runtime_module_count": 261,
+    "flattened_runtime_port_count": 12955,
+    "cpp_compile_pass": true,
+    "runtime_elaboration_pass": true,
+    "systemc_clang_pass": true,
+    "systemc_clang_targets": [
+      "dsce_apb",
+      "dsce_bpvector",
+      "dsce_mmap_3",
+      "gram_bist_1r1w_0"
+    ]
+  },
+  "structure_cross_check": {
+    "pass": true,
+    "uhdm_definition_count": 43,
+    "circt_module_count": 50,
+    "circt_instance_operation_count": 89,
+    "uhdm_definition_edge_count": 89,
+    "uhdm_elaborated_instance_count": 261,
+    "definition_edge_count_match": true,
+    "circt_parameter_specializations": [
+      "dsce_mmap_3",
+      "dsce_mmap_4",
+      "dsce_mpp_1",
+      "dsce_mpp_2",
+      "dsce_vlc_6",
+      "dsce_vlc_7",
+      "gram_bist_1r1w_0",
+      "gram_bist_1r1w_16",
+      "gram_bist_1r1w_5"
+    ],
+    "only_uhdm": [
+      "dsce_input_buffer",
+      "dsce_qaunt"
+    ]
+  },
+  "behavior_lowering": {
+    "comb": {
+      "ssa_extracted": true,
+      "operation_count": 16412,
+      "module_count": 42,
+      "native_completion": false,
+      "blocked_by": "08_full_hw_comb_seq_to_systemc"
+    },
+    "seq": {
+      "ssa_extracted": true,
+      "operation_count": 540,
+      "module_count": 36,
+      "native_completion": false,
+      "blocked_by": "08_full_hw_comb_seq_to_systemc"
+    },
+    "llhd": {
+      "ssa_extracted": true,
+      "operation_count": 433,
+      "module_count": 8,
+      "first_failure_operation": "hw.bitcast"
+    },
+    "native_systemc_complete": false,
+    "first_full_conversion_failure": {
+      "kind": "unsupported_conversion_operation",
+      "stage": "hw_to_systemc",
+      "operation": "hw.bitcast",
+      "symbol": null,
+      "owner": "circt_conversion",
+      "llm_may_change_structure": false,
+      "requires_local_reproducer": true
+    }
+  },
+  "function_refinement": {
+    "top_down_complete": false,
+    "bottom_up_complete": false,
+    "depth_summary": [
+      {
+        "depth": 0,
+        "instance_count": 1,
+        "verified": 1,
+        "unverified": 0,
+        "missing": 0,
+        "non_function_implementations": 0,
+        "pass": true
+      },
+      {
+        "depth": 1,
+        "instance_count": 7,
+        "verified": 0,
+        "unverified": 0,
+        "missing": 7,
+        "non_function_implementations": 1,
+        "pass": false
+      },
+      {
+        "depth": 2,
+        "instance_count": 24,
+        "verified": 0,
+        "unverified": 0,
+        "missing": 24,
+        "non_function_implementations": 0,
+        "pass": false
+      },
+      {
+        "depth": 3,
+        "instance_count": 45,
+        "verified": 0,
+        "unverified": 0,
+        "missing": 45,
+        "non_function_implementations": 0,
+        "pass": false
+      },
+      {
+        "depth": 4,
+        "instance_count": 92,
+        "verified": 0,
+        "unverified": 0,
+        "missing": 92,
+        "non_function_implementations": 0,
+        "pass": false
+      },
+      {
+        "depth": 5,
+        "instance_count": 92,
+        "verified": 0,
+        "unverified": 0,
+        "missing": 92,
+        "non_function_implementations": 0,
+        "pass": false
+      }
+    ],
+    "verified_end_to_end_function": true
+  },
+  "verilator_fallback": {
+    "pass": true,
+    "models": [
+      {
+        "module": "dsc_encoder",
+        "pass": true
+      },
+      {
+        "module": "dsce_engine",
+        "pass": true
+      },
+      {
+        "module": "dsce_apb",
+        "pass": true
+      }
+    ]
+  },
+  "gates": {
+    "structure_ready": true,
+    "function_refinement_ready": false,
+    "comb_seq_ready": false,
+    "bottom_up_semantic_equivalence_ready": false
+  },
+  "claim_boundary": "HW hierarchy generation, C++ compilation, elaboration and structural counts are verified. Comb/Seq native lowering and per-layer function semantic equivalence remain incomplete and are not inferred from syntax success."
+}

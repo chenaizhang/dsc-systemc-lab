@@ -18,14 +18,20 @@ allowed_changes:
   - evidence/results/**
   - models/cycle_systemc/**
   - scripts/**
-  - src/dscflow/workflows/hybrid/**
+  - src/dscflow/**
   - tests/**
   - tools/**
   - .work/**
 checks:
+  - id: python-lint
+    category: lint
+    command: [python3, -m, ruff, check, src, tests, tools]
   - id: python-tests
     category: test
     command: [bash, scripts/run_python_tests.sh]
+  - id: layered-plan
+    category: test
+    command: [dscflow, layered, prepare, --config, configs/layered_equivalence.json, --output-dir, .work/harness/layered-equivalence]
   - id: uhdm-structure-x86
     category: test
     command: [bash, scripts/run_uhdm_structure_verification.sh]

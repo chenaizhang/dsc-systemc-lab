@@ -103,7 +103,7 @@ def test_flush_dedup_replaces_double_emit_branch() -> None:
                     end else begin
 """
     repaired = repair_muxword_flush_dedup(source)
-    assert "i_muxword_staging <= i_remainder_word;" in repaired
+    assert "i_muxword_staging <= i_input_word;" in repaired
     assert "i_muxword_staging_last <= 1'b1;" in repaired
     # The partial-final-word path no longer asserts the separate flush flag.
     assert repaired.count("i_muxword_flush <= 1'b1;") == 0

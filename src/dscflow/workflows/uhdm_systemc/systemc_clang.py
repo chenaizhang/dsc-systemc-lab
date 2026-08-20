@@ -313,6 +313,8 @@ def _container_command(
         engine,
         "run",
         "--rm",
+        "--cidfile",
+        str(output_dir / f"{source_name}.cid"),
         "--userns=keep-id",
         "-v",
         f"{candidate_dir}:/workspace/candidate:ro",
@@ -357,12 +359,18 @@ def run_systemc_clang(
             "path": str(header),
         }
     output_dir.mkdir(parents=True, exist_ok=True)
-    targets = config.get("analysis_targets") or [
-        {
-            "module": str(contract["top"]),
-            "cpp_type": str(config.get("top_cpp_type", contract["top"])),
-        }
-    ]
+    if config.get("analysis_all_modules"):
+        targets = [
+            {"module": str(module["name"]), "cpp_type": str(module["name"])}
+            for module in contract.get("modules", [])
+        ]
+    else:
+        targets = config.get("analysis_targets") or [
+            {
+                "module": str(contract["top"]),
+                "cpp_type": str(config.get("top_cpp_type", contract["top"])),
+            }
+        ]
     sources: list[tuple[str, Path]] = []
     for target in targets:
         module_name = str(target["module"])
@@ -461,6 +469,18 @@ def run_systemc_clang(
                 check=False,
             )
         except subprocess.TimeoutExpired as exc:
+            cidfile = output_dir / f"{source.name}.cid"
+            if cidfile.is_file():
+                container_id = cidfile.read_text(encoding="utf-8").strip()
+                if container_id:
+                    subprocess.run(
+                        [command[0], "rm", "-f", container_id],
+                        capture_output=True,
+                        text=True,
+                        timeout=30,
+                        check=False,
+                    )
+                cidfile.unlink(missing_ok=True)
             return {
                 "pass": False,
                 "status": "failed",
@@ -469,6 +489,7 @@ def run_systemc_clang(
                 "error": str(exc),
                 "command": command,
             }
+        (output_dir / f"{source.name}.cid").unlink(missing_ok=True)
         processes.append(process)
         raw_parts.append(
             f"LLM4EDA_SYSTEMC_CLANG_TARGET {module_name}\n"

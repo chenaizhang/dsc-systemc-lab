@@ -10,6 +10,7 @@ from .autoresearch.skill_bootstrap import (
     missing_skill_message,
 )
 from .workflows.golden.runner import main as golden_main
+from .workflows.layered_equivalence.runner import main as layered_main
 from .workflows.staged_circt.runner import main as circt_main
 from .workflows.uhdm_systemc.runner import main as uhdm_main
 
@@ -19,6 +20,7 @@ def _usage() -> str:
   dscflow golden <status|compare> ...
   dscflow circt [run] ...
   dscflow uhdm-systemc <prepare|verify|systemc-clang|systemc-clang-install> ...
+  dscflow layered <prepare|compare-traces> ...
   dscflow skills [--install]
 """
 
@@ -46,6 +48,7 @@ def main() -> int:
         "golden": lambda args: golden_main(args),
         "circt": lambda args: circt_main(args),
         "uhdm-systemc": lambda args: uhdm_main(args),
+        "layered": lambda args: layered_main(args),
         "skills": _skills,
     }
     handler = routes.get(command)

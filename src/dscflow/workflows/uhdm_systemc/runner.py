@@ -28,12 +28,24 @@ def load_contract(
         contract = read_json(prepared)
     else:
         ir = read_json(resolve(case_root, config["uhdm"]["structure_ir"]))
-        contract = build_uhdm_structure_contract(ir)
+        hierarchy_path = config["uhdm"].get("hierarchy_json")
+        hierarchy = read_json(resolve(case_root, hierarchy_path)) if hierarchy_path else None
+        contract = build_uhdm_structure_contract(ir, hierarchy)
     expected = config["uhdm"].get("expected_structure_fingerprint")
     if expected and contract.get("structural_fingerprint") != expected:
         raise RuntimeError(
             "UHDM structure fingerprint changed: "
             f"{contract.get('structural_fingerprint')} != {expected}"
+        )
+    expected_instances = config["uhdm"].get("expected_instance_count")
+    if expected_instances and contract.get("instance_count") != int(expected_instances):
+        raise RuntimeError(
+            f"UHDM instance count changed: {contract.get('instance_count')} != {expected_instances}"
+        )
+    expected_bindings = config["uhdm"].get("expected_binding_count")
+    if expected_bindings and contract.get("binding_count") != int(expected_bindings):
+        raise RuntimeError(
+            f"UHDM binding count changed: {contract.get('binding_count')} != {expected_bindings}"
         )
     return contract
 

@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "case": "dsc_encoder_layered_equivalence",
+  "uhdm": {
+    "structure_ir": "../evidence/uhdm/structure_ir.json",
+    "hierarchy_json": "../evidence/uhdm/module_hierarchy.json",
+    "expected_instance_count": 261,
+    "expected_binding_count": 3155
+  },
+  "implementations": {
+    "dsc_encoder": {
+      "kind": "end_to_end_function_tlm",
+      "status": "verified",
+      "evidence": [
+        "evidence/results/vesa_function_tlm_x86.json",
+        "evidence/results/function_tlm_contract_x86.json"
+      ]
+    },
+    "dsce_apb": {
+      "kind": "cycle_systemc",
+      "status": "verified",
+      "counts_as_function_reference": false,
+      "evidence": ["evidence/results/hybrid_differential_x86.json"]
+    }
+  },
+  "semantic_pairs": []
+}

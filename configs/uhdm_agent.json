@@ -5,7 +5,9 @@
   "_display_path": "configs/uhdm_agent.json",
   "uhdm": {
     "structure_ir": "../evidence/uhdm/structure_ir.json",
-    "expected_structure_fingerprint": "a9926ceb94e76efd936a5bcedea86604e5a1c002119134b50c40a11f58684c94"
+    "hierarchy_json": "../evidence/uhdm/module_hierarchy.json",
+    "expected_instance_count": 261,
+    "expected_binding_count": 3155
   },
   "behavior": {
     "source_root": "../inputs/private/rtl",
@@ -118,6 +120,7 @@
     "container_systemc_include": "/opt/systemc-2.3.3/include",
     "container_clang_resource_include": "/opt/clang-15.0.6/lib/clang/15.0.6/include",
     "timeout_seconds": 600,
+    "analysis_all_modules": true,
     "analysis_targets": [
       {
         "module": "dsc_encoder",

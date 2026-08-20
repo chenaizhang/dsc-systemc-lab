@@ -2,44 +2,44 @@
 
 ## 已完成
 
-1. 软件参考：VESA C model、C++ adapter、Function-TLM 在 x86 上输出 20,736 字节，逐字节一致。
-2. 共享刺激：`192 × 108` RGB、PPS、APB 和 AXI stream 已统一。
-3. 混合仿真：单体 Verilator、7 模块拆分网络、`CycleApb` 替换网络逐周期一致。
-4. engine 打桩：输入到 predict 的数据量和 line-last 完整，首个异常定位到
-   `dsce_format/stream/format_buffer`。
-5. UHDM：Surelog 1.84 为 0 error/0 warning，261 个实例全部导出；包含 236 个 generate 路径实例、
-   3,155 个具名端口绑定和 60 个经 SV 核对的显式悬空输出。
-6. CIRCT：真实设计 core IR 成功；`llhd.coroutine` conversion 失败和
-   `systemc.convert/comb.icmp/comb.mux` emission 失败均已有独立最小复现。
-7. x86 回归：26 个 Python 测试以及 UHDM、CIRCT、原始 RTL 差分、诊断 RTL 差分 5 个检查命令
-   均返回 0。
-8. 自主排障：已从 8 个待确认问题中自行闭合 7 个；确认 chunk 尾部 6 字节重复来自
-   `dsce_slice_mux`，并确认剩余缺口是交付 RTL 缺失的 CBR line-last/flush 链。
+1. 顶层软件参考：VESA C model、C++ adapter、Function-TLM 在 x86 上输出一致。
+2. UHDM 权威结构：261 个实例、3,243 个端口、3,155 个具名绑定；运行时探针和 43 个
+   systemc-clang 目标全部通过。
+3. 分层 Function 框架：从 UHDM 生成同构 SystemC module、channel、绑定和 `DscFunctionSlot`，并按
+   深度生成填充/差分计划。
+4. CIRCT HW-only：fork 新增 `structure-only=true`，真实 DSC 生成 50 个 `SC_MODULE`、89 条定义级
+   实例边，C++ 编译和运行时 elaboration 通过，展开后同样为 261 个实例。
+5. CIRCT 静态分析：代表性普通模块、参数特化模块和 SRAM 特化模块经依赖闭包裁剪后通过
+   systemc-clang。
+6. CIRCT 行为清单：提取 Comb 16,412、Seq 540、LLHD 433 个 operation，保留首个失败
+   `hw.bitcast` 的机器证据。
+7. Verilator 兜底：`dsc_encoder`、`dsce_engine`、`dsce_apb` 的 SystemC/C++ 模型均可构建。
+8. 混合差分基础：单体 Verilator、拆分网络和 `CycleApb` 替换网络已有逐周期差分能力。
 
-## 当前没有完成
+## 尚未完成
 
-1. `dsce_engine` 尚未被独立 cycle SystemC 完整替换；现在只有 `CycleApb` 是非 Verilator 模块。
-2. 原始 RTL 仍不匹配软件 golden：20,304 vs 20,736 字节，byte 24 首差异。
-3. 安全诊断 overlay 仍未匹配 golden：20,232 vs 20,736 字节，byte 254 首差异；它已消除
-   bypass 和 slice-mux 重复，但只得到 210/216 个 line marker。
-4. CIRCT 尚不能原生发射可编译的完整 cycle SystemC。
-5. UHDM 1.84 对部分复合端口给出 width 0，Agent 新结构指纹仍需 CIRCT HW type 补宽。
+1. 深度 1～5 的模块级 function model 尚未逐层实现和验证；当前仅顶层 function 通过。
+2. CIRCT 完整 Comb/Seq 行为尚未发射为可运行 SystemC；当前先被 aggregate `hw.bitcast` 阻塞。
+3. 因 Comb/Seq 尚未形成 candidate，底层 function 与 CIRCT 行为的逐模块语义对齐尚未开始。
+4. 参考 RTL 与 VESA golden 仍存在最终码流差异，format/stream 的 line-last/flush 路径仍需修正。
 
-## 为什么现在只保留一个外部资料请求
+## 为什么这些项不能标成完成
 
-时钟、SRAM 一拍读、启动门控、验收口径和重复发送点都已自行确认。当前交付 RTL 没有形成可验证
-的 chunk/last 显式传播链；按端口名重建整链的 x86 反例只有 14,928 字节和 155 个 line marker。
-继续猜 FIFO 指针协议会得到能编译但行为错误的模型。恢复实现只需正式 format/stream 源码，或一个
-slice 两行的正确边界波形。可直接转发的最小请求见
-`docs/blockers/format_stream_contract_questions_zh.md`。
+- `DscFunctionSlot` 是行为注入点，不是 function 实现。
+- `CycleApb` 是 cycle-level 模型，不是独立的纯 function reference。
+- HW 骨架能编译只证明结构闭环，不证明 Comb/Seq 或图像压缩语义。
+- Verilator 忠实执行现有 RTL，RTL 中的功能错误也会保留，因此不能替代 VESA golden。
 
-## 后续正确顺序
+## 下一顺序
 
 ```text
-取得 format/stream last 链源码或两行正确波形
-  → 用同一向量修正 RTL/Verilator 到 VESA golden
-  → 生成 dsce_engine cycle SystemC 框架和行为
-  → 从 format 子链开始逐模块替换
-  → 每次替换做逐周期接口与最终 payload 差分
-  → 处理 CIRCT conversion/emission patch，逐步减少 Verilator 黑盒
+修复 CIRCT aggregate hw.bitcast
+  → 重新运行完整转换并记录下一个 Comb/Seq 缺口
+  → 同时实现深度 1 的 7 个 function 合同与模型
+  → 每层与父级 function 做端到端同输入差分
+  → 自底向上把 function 与 CIRCT Comb/Seq SystemC 对齐
+  → 逐模块替换 Verilator 黑盒
+  → 最终与 VESA golden 比较完整压缩输出
 ```
+
+完整数字和复现命令见 `docs/reports/layered_systemc_equivalence_x86.md`。

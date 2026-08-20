@@ -59,6 +59,7 @@ def test_contract_golden_fixture(tmp_path: Path) -> None:
          str(golden), str(dump), str(out)],
         capture_output=True,
         text=True,
+        check=False,
     )
     # The synthetic fixture is not the 192x108 golden, so the verdict gate
     # fails; the tool must still produce a well-formed contract.

@@ -101,6 +101,7 @@ def test_merge_fills_widths(tmp_path: Path) -> None:
          str(hierarchy), str(ir), str(output)],
         capture_output=True,
         text=True,
+        check=False,
     )
     assert result.returncode == 0, result.stderr
     merged = json.loads(output.read_text())

@@ -27,6 +27,10 @@
     "provided_hierarchy_nodes": 25,
     "surelog_instances": 261
   },
+  "structural_reference": {
+    "structure_ir": "evidence/uhdm/structure_ir.json",
+    "hierarchy_json": "evidence/uhdm/module_hierarchy.json"
+  },
   "frontend": {
     "include_dirs": [
       "."
@@ -43,6 +47,17 @@
   },
   "circt": {
     "timeout_seconds": 600
+  },
+  "systemc_clang": {
+    "enabled": true,
+    "timeout_seconds": 300,
+    "analysis_all_modules": false,
+    "analysis_targets": [
+      {"module": "dsce_apb", "cpp_type": "dsce_apb"},
+      {"module": "dsce_bpvector", "cpp_type": "dsce_bpvector"},
+      {"module": "dsce_mmap_3", "cpp_type": "dsce_mmap_3"},
+      {"module": "gram_bist_1r1w_0", "cpp_type": "gram_bist_1r1w_0"}
+    ]
   },
   "verilator": {
     "timeout_seconds": 900,

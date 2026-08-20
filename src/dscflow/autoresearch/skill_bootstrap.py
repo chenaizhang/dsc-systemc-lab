@@ -7,7 +7,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-
 EDA_SANDBOX_REPOSITORY = "https://github.com/trv3wood/eda-sandbox.git"
 EDA_SANDBOX_BRANCH = "dev"
 DEFAULT_REQUIRED_SKILLS = (

@@ -4,7 +4,6 @@ import json
 import unittest
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[2]
 MODEL = ROOT / "configs" / "model_boundaries.json"
 SOURCE = ROOT / "models" / "dataflow_systemc" / "dsc_tlm.hpp"

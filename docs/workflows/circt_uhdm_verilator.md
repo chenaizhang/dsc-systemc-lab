@@ -41,9 +41,9 @@ flowchart TD
 | systemc-clang | Agent/原生 SystemC 的模块、端口、绑定、process 静态结构 | 运行时数据正确 |
 | 共同 stimulus + golden | 最终输出是否一致 | 未覆盖输入空间上的普遍正确性 |
 
-`verilog_dsc` 附带的 exporter 只递归 `vpiModule`。本次输入的 JSON 有 25 个层次节点，Surelog
-日志却记录 261 个实例，因此流程将 `canonical_hierarchy_ready` 置为 false，并保留 CIRCT 的
-`hw.instance` 清单作为第二结构视角。Agent 不得在这两个证据之外臆造连接。
+仓库中的 UHDM exporter 已补齐 generate scope 递归。本次权威 JSON 含 261 个 elaborated 实例、
+3,243 个端口和 3,155 个具名绑定；CIRCT `hw.instance` 清单作为独立结构视角。生成器不得在这两个
+证据之外臆造连接。
 
 ## 3. 五个阶段
 
@@ -82,12 +82,13 @@ flowchart TD
 ```text
 circt-verilog --ir-hw
 circt-opt --canonicalize --symbol-dce
-circt-opt --convert-hw-to-systemc
+circt-opt --convert-hw-to-systemc="structure-only=true"
 circt-translate --export-systemc
 ```
 
-每一阶段都保存 argv、返回码、stdout/stderr、产物哈希和大小。转换失败时分类首个非法 operation，
-后续 emission 标为 blocked，绝不生成伪造 C++。
+HW-only 先生成模块、端口、实例、信号、绑定和空 method，并执行 C++ 编译及运行时 elaboration。
+随后再单独调用完整 `convert-hw-to-systemc` 测试 Comb/Seq。每一阶段都保存 argv、返回码、
+stdout/stderr、产物哈希和大小；完整行为转换失败时分类首个非法 operation，绝不生成伪造行为。
 
 ### 3.5 Verilator 黑盒与混合计划
 
@@ -136,9 +137,9 @@ run/
 
 ## 6. 当前边界
 
-当前包没有共同的图像输入、寄存器配置序列和参考压缩输出，也没有官方 DSC C model。因此本流程
-已经完成结构与可构建性验证，但功能差分仍是显式未执行项。后续拿到 golden 后，应先验证顶层
-纯 function/TLM model，再以相同 stimulus 验证数据流 SystemC，最后逐模块替换 Verilator 模型。
+VESA 顶层 C model、Function-TLM 和合成输入已经形成软件 golden；公司专用向量仍未提供。当前
+HW 结构已完成验证，Comb/Seq 原生行为和分层子模块 function 仍是显式未完成项。后续先逐层细化
+function，再从底层与 CIRCT 行为对齐，最后逐模块替换 Verilator 模型。
 
 ## 7. CIRCT 官方接口参考
 

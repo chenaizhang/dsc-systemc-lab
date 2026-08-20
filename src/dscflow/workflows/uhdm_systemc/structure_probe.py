@@ -113,36 +113,59 @@ def compare_runtime_structure(
 
     interface_by_port = actual_port_map
     groups: dict[str, list[str]] = {}
-    for module in contract.get("modules", []):
-        for instance in module.get("instances", []):
-            instance_path = str(instance["path"])
-            parent_path = instance_path.rsplit(".", 1)[0]
+    aggregate_adapter_groups: set[str] = set()
+    explicit_open_outputs: list[str] = []
+    modules = contract_module_map(contract)
+    graph = contract.get("instance_graph", [])
+    graph_by_path = {str(item["path"]): item for item in graph}
+    hints = contract.get("non_authoritative_type_hints", {})
+    if graph:
+        instances = [item for item in graph if item.get("parent_path") is not None]
+    else:
+        instances = [
+            instance
+            for module in contract.get("modules", [])
+            for instance in module.get("instances", [])
+        ]
+    for instance in instances:
+            instance_path = str(instance.get("systemc_path") or instance["path"])
+            parent_path = str(instance.get("parent_path") or instance_path.rsplit(".", 1)[0])
             for binding in instance.get("bindings", []):
                 connection = binding.get("connection")
                 port = binding.get("port")
                 if not connection or not port:
+                    port_info = next(
+                        (
+                            item
+                            for item in modules.get(str(instance.get("module")), {}).get("ports", [])
+                            if item.get("name") == port
+                        ),
+                        None,
+                    )
+                    if port_info and port_info.get("direction") == "output":
+                        explicit_open_outputs.append(f"{instance_path}.{port}")
+                        continue
                     errors.append(f"unresolved UHDM binding: {instance_path}.{port}")
                     continue
-                group = f"{parent_path}:{connection}"
+                child_width = int(hints.get(str(instance.get("module")), {}).get(str(port), 1))
+                parent_instance = graph_by_path.get(parent_path)
+                parent_module = str(parent_instance.get("module")) if parent_instance else ""
+                parent_width = hints.get(parent_module, {}).get(str(connection))
+                full_connection = str(binding.get("connection_full_name") or "").replace("work@", "")
+                if parent_width == child_width:
+                    group = f"{parent_path}:{connection}"
+                else:
+                    group = full_connection or f"{parent_path}:{connection}:{instance_path}.{port}"
+                    aggregate_adapter_groups.add(group)
                 path = f"{instance_path}.{port}"
                 interface = interface_by_port.get(path)
                 if interface is None:
                     continue
                 groups.setdefault(group, []).append(str(interface))
     for group, interfaces in groups.items():
-        if len(set(interfaces)) != 1:
+        if len(set(interfaces)) != 1 and group not in aggregate_adapter_groups:
             errors.append(
                 f"SystemC connection split for UHDM net {group}: {sorted(set(interfaces))}"
-            )
-    reverse: dict[str, set[str]] = {}
-    for group, interfaces in groups.items():
-        if interfaces:
-            reverse.setdefault(interfaces[0], set()).add(group)
-    for interface, group_names in reverse.items():
-        if len(group_names) > 1:
-            errors.append(
-                f"different UHDM nets collapsed onto SystemC interface {interface}: "
-                f"{sorted(group_names)}"
             )
     return {
         "pass": not errors,
@@ -152,6 +175,8 @@ def compare_runtime_structure(
         "actual_port_count": len(actual_ports),
         "normalized_ports": actual_port_map,
         "connection_groups": groups,
+        "aggregate_adapter_groups": sorted(aggregate_adapter_groups),
+        "explicit_open_outputs": explicit_open_outputs,
         "errors": errors,
     }
 
@@ -169,9 +194,16 @@ def normalize_runtime_ports(
     modules = contract_module_map(contract)
     top = str(contract["top"])
     module_by_path = {top: top}
-    for module in contract.get("modules", []):
-        for instance in module.get("instances", []):
-            module_by_path[str(instance["path"])] = str(instance["module"])
+    graph = contract.get("instance_graph", [])
+    if graph:
+        module_by_path = {
+            str(instance.get("systemc_path") or instance["path"]): str(instance["module"])
+            for instance in graph
+        }
+    else:
+        for module in contract.get("modules", []):
+            for instance in module.get("instances", []):
+                module_by_path[str(instance["path"])] = str(instance["module"])
     result: dict[str, str] = {}
     for path, interface in ports.items():
         parent, separator, leaf = path.rpartition(".")

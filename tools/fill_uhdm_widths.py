@@ -88,11 +88,7 @@ def _read_type(signature: str, start: int):
             depth += 1
         elif char == ">":
             depth -= 1
-        elif char == "," and depth == 0:
-            break
-        elif char == ")" and depth == 0:
-            break
-        elif depth == 0 and signature.startswith("loc(", index):
+        elif char == "," and depth == 0 or char == ")" and depth == 0 or depth == 0 and signature.startswith("loc(", index):
             break
         index += 1
     return signature[start:index].strip(), index
@@ -177,7 +173,6 @@ def main():
 
     filled = 0
     missing = []
-    mismatched = []
 
     def fill_node(node):
         nonlocal filled
@@ -189,7 +184,7 @@ def main():
             if entry is None:
                 missing.append((definition, name))
                 continue
-            direction, type_string, width = entry
+            _direction, type_string, width = entry
             port["hw_type"] = type_string
             port["width_bits"] = width
             port["type_source"] = "circt-hw-ir"
