@@ -78,6 +78,10 @@ dscflow circt run \
   --output-root .work/runs/staged-circt
 ```
 
+将同一套 UHDM、CIRCT 和 Verilator 内联流程复用到新的图像 IP，请使用
+[中文交接说明](docs/handoffs/image_ip_systemc_pipeline_zh.md)和
+`configs/image_ip_template.json`，正式验证仍在 x86 服务器执行。
+
 生成 UHDM 层次化 FunctionSlot 骨架和逐层语义计划：
 
 ```bash

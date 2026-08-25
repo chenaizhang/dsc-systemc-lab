@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "case": "image_ip",
+  "top": "IMAGE_IP_TOP",
+  "skills": {
+    "required": [
+      "eda-tool-assistant",
+      "modeling-systemverilog",
+      "modeling-systemc-tlm"
+    ],
+    "source": {
+      "repository": "https://github.com/trv3wood/eda-sandbox.git",
+      "branch": "dev"
+    },
+    "check_policy": "init_once_then_use_cached_state"
+  },
+  "inputs": {
+    "root_env": "IMAGE_IP_RTL_ROOT",
+    "default_root": "inputs/private/image_ip",
+    "filelist": "surelog.f",
+    "hierarchy_json": "uhdm_module_hierarchy.json",
+    "surelog_log": "build/surelog/slpp_all/surelog.log"
+  },
+  "frontend": {
+    "include_dirs": [
+      "."
+    ],
+    "timescale": "1ns/1ps",
+    "sroa": false,
+    "exclude_uninstantiated_sources": []
+  },
+  "circt": {
+    "timeout_seconds": 600
+  },
+  "systemc_clang": {
+    "enabled": false,
+    "timeout_seconds": 300,
+    "analysis_all_modules": false,
+    "analysis_targets": []
+  },
+  "verilator": {
+    "timeout_seconds": 900,
+    "build_jobs": 2,
+    "blackbox_tops": [
+      "IMAGE_IP_TOP"
+    ],
+    "replacement_order": [
+      "IMAGE_IP_TOP"
+    ]
+  }
+}
