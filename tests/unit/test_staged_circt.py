@@ -12,6 +12,7 @@ from dscflow.workflows.staged_circt.mlir import (
 )
 from dscflow.workflows.staged_circt.runner import (
     _render_systemc_runtime_probe,
+    _source_arguments,
     _verilator_port_names,
     _write_reduced_systemc_header,
 )
@@ -182,6 +183,28 @@ def test_verilator_systemc_reference_ports_are_recognized(tmp_path: Path) -> Non
     )
 
     assert _verilator_port_names(header) == ["bist", "cfg", "clk", "data"]
+
+
+def test_source_arguments_apply_repository_relative_overlay(tmp_path: Path) -> None:
+    rtl_root = tmp_path / "rtl"
+    repo_root = tmp_path / "repo"
+    rtl_root.mkdir()
+    _write(rtl_root / "keep.sv", "module keep; endmodule\n")
+    _write(rtl_root / "empty.sv", "module empty; endmodule\n")
+    replacement = repo_root / "models" / "replacement.sv"
+    _write(replacement, "module replacement; endmodule\n")
+
+    resolved = _source_arguments(
+        rtl_root,
+        ["keep.sv", "empty.sv"],
+        repo_root,
+        [{"source": "empty.sv", "replacement": "models/replacement.sv"}],
+    )
+
+    assert resolved == [
+        str((rtl_root / "keep.sv").resolve()),
+        str(replacement.resolve()),
+    ]
 
 
 def test_circt_runtime_probe_binds_every_top_port(tmp_path: Path) -> None:

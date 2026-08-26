@@ -57,18 +57,15 @@ module gram_bist_1r1w
     localparam integer pDEPTH = 1 << pADDRESS_BITS;
     logic [pDATA_BITS-1:0] memory [0:pDEPTH-1];
 
-    initial begin
-        data_r = '0;
-        for (integer index = 0; index < pDEPTH; index = index + 1)
-            memory[index] = '0;
-    end
-
-    always_ff @(posedge clk_w) begin
+    // The delivered primitive has no reset port, so its power-up contents are
+    // intentionally unspecified.  Avoid an initial loop: CIRCT represents it
+    // as a coroutine, which is unrelated to the synchronous 1R1W behavior.
+    always @(posedge clk_w) begin
         if (we_w)
             memory[addr_w] <= data_w;
     end
 
-    always_ff @(posedge clk_r) begin
+    always @(posedge clk_r) begin
         if (en_r)
             data_r <= memory[addr_r];
     end

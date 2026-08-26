@@ -37,6 +37,13 @@
     ],
     "timescale": "1ns/1ps",
     "sroa": false,
+    "source_overrides": [
+      {
+        "source": "dsc_support_primitives.sv",
+        "replacement": "models/cycle_systemc/rtl_shims/dsc_support_primitives.sv",
+        "reason": "交付 primitive 只有端口声明；正式仿真使用显式单级/双级同步器和 1R1W SRAM 行为"
+      }
+    ],
     "exclude_uninstantiated_sources": [
       {
         "source": "dsce_quant.sv",

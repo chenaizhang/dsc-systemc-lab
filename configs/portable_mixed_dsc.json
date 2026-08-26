@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "case": "dsc_portable_mixed",
+  "top": "dsce_engine",
+  "skills": {
+    "required": [
+      "eda-tool-assistant",
+      "modeling-systemverilog",
+      "modeling-systemc-tlm"
+    ],
+    "source": {
+      "repository": "https://github.com/trv3wood/eda-sandbox.git",
+      "branch": "dev"
+    },
+    "check_policy": "init_once_then_use_cached_state"
+  },
+  "inputs": {
+    "root_env": "VERILOG_DSC_ROOT",
+    "default_root": "inputs/private/rtl",
+    "filelist": "surelog.f",
+    "hierarchy_json": "uhdm_module_hierarchy.json",
+    "surelog_log": "build/surelog/slpp_all/surelog.log"
+  },
+  "frontend": {
+    "include_dirs": [
+      "."
+    ],
+    "timescale": "1ns/1ps",
+    "sroa": false,
+    "source_overrides": [
+      {
+        "source": "dsc_support_primitives.sv",
+        "replacement": "models/cycle_systemc/rtl_shims/dsc_support_primitives.sv",
+        "reason": "用可执行同步器和 SRAM 仿真行为替换交付空壳"
+      }
+    ],
+    "exclude_uninstantiated_sources": [
+      {
+        "source": "dsce_quant.sv",
+        "definition": "dsce_qaunt",
+        "reason": "该未实例化定义使用未声明类型，不属于 dsce_engine 可达设计"
+      }
+    ]
+  },
+  "circt": {
+    "timeout_seconds": 900
+  },
+  "systemc_clang": {
+    "enabled": false
+  },
+  "verilator": {
+    "timeout_seconds": 900,
+    "build_jobs": 2,
+    "blackbox_tops": [],
+    "replacement_order": [
+      "dsce_pack",
+      "dsce_partition",
+      "dsce_slice",
+      "dsce_slice_mux",
+      "dsce_bypass"
+    ]
+  }
+}

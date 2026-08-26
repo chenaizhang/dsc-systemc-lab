@@ -27,6 +27,7 @@
     ],
     "timescale": "1ns/1ps",
     "sroa": false,
+    "source_overrides": [],
     "exclude_uninstantiated_sources": []
   },
   "circt": {

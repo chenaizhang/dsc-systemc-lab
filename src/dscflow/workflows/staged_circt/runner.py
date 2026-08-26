@@ -123,13 +123,45 @@ def _resolve_tools(args: argparse.Namespace) -> tuple[dict[str, Path | None], di
     return tools, _tool_environment(args.circt_library_path)
 
 
-def _source_arguments(root: Path, sources: list[str]) -> list[str]:
-    return [str((root / item).resolve()) for item in sources]
+def _source_arguments(
+    root: Path,
+    sources: list[str],
+    repo_root: Path | None = None,
+    source_overrides: list[dict[str, Any]] | None = None,
+) -> list[str]:
+    """Resolve an RTL file list and apply explicit simulation overlays.
+
+    Overrides are keyed by the exact file-list entry. Relative replacement
+    paths are repository-relative so a checked-in behavioral primitive can
+    replace a private empty declaration without modifying the reference RTL.
+    """
+
+    replacements = {
+        str(item["source"]): Path(str(item["replacement"]))
+        for item in (source_overrides or [])
+    }
+    resolved: list[str] = []
+    for source in sources:
+        replacement = replacements.get(source)
+        if replacement is None:
+            path = root / source
+        elif replacement.is_absolute():
+            path = replacement
+        else:
+            if repo_root is None:
+                raise ValueError("相对 source override 需要 repo_root")
+            path = repo_root / replacement
+        path = path.resolve()
+        if not path.is_file():
+            raise FileNotFoundError(path)
+        resolved.append(str(path))
+    return resolved
 
 
 def _frontend_argv(
     tool: Path,
     root: Path,
+    repo_root: Path,
     config: dict[str, Any],
     sources: list[str],
     output: Path,
@@ -148,7 +180,12 @@ def _frontend_argv(
             str(config["top"]),
             "--ir-hw",
             "--mlir-print-debuginfo",
-            *_source_arguments(root, sources),
+            *_source_arguments(
+                root,
+                sources,
+                repo_root,
+                list(frontend.get("source_overrides", [])),
+            ),
             "-o",
             str(output),
         ]
@@ -259,6 +296,7 @@ def _circt_flow(
         _frontend_argv(
             circt_verilog,
             root,
+            Path(config["_repo_root"]),
             config,
             list(source_plan["all_sources"]),
             full_ir,
@@ -281,6 +319,7 @@ def _circt_flow(
         _frontend_argv(
             circt_verilog,
             root,
+            Path(config["_repo_root"]),
             config,
             list(source_plan["reachable_sources"]),
             core_ir,
@@ -849,7 +888,12 @@ def _run_verilator(
         }
     timeout = int(config["verilator"].get("timeout_seconds", 900))
     jobs = int(config["verilator"].get("build_jobs", 2))
-    sources = _source_arguments(root, evidence["source_plan"]["reachable_sources"])
+    sources = _source_arguments(
+        root,
+        evidence["source_plan"]["reachable_sources"],
+        Path(config["_repo_root"]),
+        list(config["frontend"].get("source_overrides", [])),
+    )
     models: list[dict[str, Any]] = []
     inventory_by_name = {
         item["name"]: item for item in (inventory or {}).get("modules", [])
@@ -1035,6 +1079,7 @@ def _hybrid_plan(
 def run_pipeline(args: argparse.Namespace) -> tuple[Path, dict[str, Any]]:
     repo_root = args.repo_root.resolve()
     config = load_config(args.config.resolve())
+    config["_repo_root"] = str(repo_root)
     input_root = resolve_input_root(repo_root, config, args.input_root)
     run_id = args.run_id or datetime.now(timezone.utc).astimezone().strftime("%Y%m%d-%H%M%S")
     run_dir = args.output_root.resolve() / run_id

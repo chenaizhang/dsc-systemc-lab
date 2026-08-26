@@ -14,9 +14,11 @@ allowed_changes:
   - datasets/**
   - docs/reports/**
   - docs/blockers/**
+  - docs/handoffs/**
   - evidence/uhdm/**
   - evidence/results/**
   - models/cycle_systemc/**
+  - packaging/**
   - scripts/**
   - src/dscflow/**
   - tests/**
@@ -44,3 +46,12 @@ checks:
   - id: repaired-rtl-differential-x86
     category: test
     command: [bash, scripts/run_repaired_rtl_verification.sh]
+  - id: cdc-shim-x86
+    category: test
+    command: [ctest, --test-dir, .work/handoff-build, -R, cdc-shim, --output-on-failure]
+  - id: mixed-systemc-build-x86
+    category: build
+    command: [cmake, --build, .work/handoff-build, --parallel, "2"]
+  - id: mixed-systemc-smoke-x86
+    category: test
+    command: [ctest, --test-dir, .work/handoff-build, -R, mixed-systemc-smoke, --output-on-failure]
