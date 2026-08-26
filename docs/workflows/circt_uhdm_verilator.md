@@ -4,8 +4,9 @@
 
 这条流程用于当前 DSC 路线：结构不能由大模型猜；先利用 UHDM 与 CIRCT 固化模块、
 端口、实例、连线和 SSA 行为证据，再判断 CIRCT 的 SystemC 后端能走到哪一步。后端不能完成的
-模块，优先使用 Verilator `--sc` 生成的 cycle-level 模型作黑盒；只有明确定位到局部 operation
-缺口后，才允许 Agent 补 CIRCT pass 或局部 SystemC method。
+模块，使用 Verilator `--cc` 生成普通 C++ 叶子并通过 interop 内联；独立的完整 RTL 参考才使用
+Verilator `--sc`。只有明确定位到局部 operation 缺口后，才允许 Agent 补 CIRCT pass 或局部
+SystemC method。
 
 它不把 Verilator 模型说成纯软件 function model，也不把“编译成功”说成“图像压缩功能正确”。
 
@@ -37,7 +38,8 @@ flowchart TD
 | Surelog 日志 | elaboration 是否干净、实例总数、最大深度 | 附带 JSON exporter 是否完整 |
 | UHDM hierarchy JSON | exporter 实际导出的模块与调用关系 | generate scope 被漏掉时的完整层次 |
 | CIRCT HW IR | 展开后的模块、端口类型、`hw.instance` 与 SSA | 原生 SystemC exporter 一定支持这些 operation |
-| Verilator `--sc` | RTL 可生成并编译为 cycle-level C++/SystemC 模型 | RTL 功能正确、与 golden 等价 |
+| Verilator `--sc` | 完整 RTL 可生成独立 cycle-level SystemC 参考 | RTL 功能正确、与 golden 等价 |
+| Verilator `--cc` | CIRCT 容器可调用叶子 C++ 成员和 `eval()` | packed 端口未经 ABI 统一时可以直接集成 |
 | systemc-clang | Agent/原生 SystemC 的模块、端口、绑定、process 静态结构 | 运行时数据正确 |
 | 共同 stimulus + golden | 最终输出是否一致 | 未覆盖输入空间上的普遍正确性 |
 
@@ -92,16 +94,17 @@ stdout/stderr、产物哈希和大小；完整行为转换失败时分类首个�
 
 ### 3.5 Verilator 黑盒与混合计划
 
-对配置中的 `dsc_encoder`、`dsce_engine`、`dsce_apb` 分别执行：
+完整独立参考对配置中的顶层执行：
 
 ```text
-verilator --cc --sc --timing --trace ...
+verilator --sc --timing --trace ...
 make -f V<module>.mk V<module>__ALL.a
 ```
 
-脚本验证头文件和静态库真实存在，并把 Verilator SystemC 端口与 CIRCT HW 端口集合比较。混合
-替换顺序由小到大：`dsce_apb → dsce_engine → dsc_encoder`。每替换一级都必须重跑同一份输入并
-与 functional/TLM golden 比较；没有 stimulus 时只能报告“黑盒可构建”。
+供 CIRCT interop 使用的叶子必须先从 prepared IR 导出展平端口 SystemVerilog，再运行
+`verilator --cc`。这保证 Verilator 成员名和 CIRCT SystemC 访问名一致。混合替换顺序由小到大；
+每替换一级都必须重跑同一份输入并与 functional/TLM golden 比较，没有 stimulus 时只能报告
+“黑盒可构建”。
 
 ## 4. 运行命令
 

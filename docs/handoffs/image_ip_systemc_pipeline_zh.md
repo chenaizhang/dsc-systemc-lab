@@ -38,6 +38,10 @@ image_ip/
 `surelog.f` 中的源文件路径相对于输入目录。UHDM JSON 必须包含一个 design，并提供模块定义、
 顶层节点和递归子实例；Surelog 日志用于核对展开后的实例数及错误数。
 
+如果交付包包含只有接口、没有仿真行为的工艺 primitive，必须在 `frontend.source_overrides`
+中显式指定仿真替代源。例如同步器空壳不能直接交给 Verilator，否则跨时钟脉冲不会传播。
+替代源同时用于 CIRCT frontend 和 Verilator reference，确保两条路径看到同一份可执行行为。
+
 从模板复制配置：
 
 ```bash
@@ -159,12 +163,22 @@ circt-translate --export-systemc mixed.systemc.mlir -o mixed.systemc.hpp
 
 ### 6.3 为 interop 生成 Verilator 模型
 
-Interop 会直接写成员、调用 `eval()` 再读成员，因此这里使用普通 C++ 模型：
+Interop 会直接写成员、调用 `eval()` 再读成员，因此这里使用普通 C++ 模型。对于 packed
+struct/array，不能直接让 Verilator 编译原始聚合端口 RTL。整份 prepared IR 仍可能包含
+其他模块的 LLHD/Seq/Sim 操作，所以要逐个把目标叶子设为唯一 public 模块，先做 DCE 和
+时序 lowering，再导出端口已展平的 SystemVerilog：
 
 ```bash
-verilator --cc --timing -f surelog.f --top-module LeafA --Mdir obj_leaf_a
+circt-opt --symbol-dce --llhd-lower-processes --canonicalize \
+  --lower-seq-to-sv --canonicalize --export-verilog \
+  leaf_a_public.mlir -o /dev/null > interop_LeafA.sv
+verilator --cc --timing interop_LeafA.sv \
+  --top-module LeafA --prefix VLeafA --Mdir obj_leaf_a
 make -C obj_leaf_a -f VLeafA.mk -j2
 ```
+
+这样 CIRCT SystemC 和 Verilator C++ 同时使用 `cfg_field`、`pixels_0` 等标量端口，聚合值的
+pack/unpack 由 CIRCT 导出的 HDL 完成，不需要在 C++ 中猜测 SystemVerilog 位域顺序。
 
 不要把 `verilator --sc` 产物直接接到 interop：`--sc` 暴露的是 `sc_in/sc_out`，不能按普通
 C++ 数据成员直接赋值。`--sc` 仍可用于构建完整 RTL 的独立 SystemC 参考模型和差分基线。
@@ -183,8 +197,15 @@ SV 单模块编译
   → 再接独立软件 golden 判断算法功能
 ```
 
-对以标量端口为主、语法接近 Verilog 的 IP，当前 interop 路径可以直接复用。对于 packed struct、
-多维数组等聚合端口，需要在 SystemC 标量端口与 Verilator 聚合成员之间生成 pack/unpack 适配层。
+最终交接使用仓库中的源码构建模板，不能把其他机器生成的 `.a` 作为依赖：
+
+```bash
+cmake -S project -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake --build build --parallel 2
+ctest --test-dir build --output-on-failure
+```
+
+模板会在当前机器重新运行 Verilator，同时执行 CDC shim 和混合 SystemC smoke test。
 
 ## 8. 当前 DSC 实测边界
 
@@ -194,12 +215,15 @@ SV 单模块编译
 | CIRCT HW 结构 SystemC | 已导出并通过 C++ 编译 | 检查模块、端口、层次和胶水连线 |
 | 基础 Comb/Seq 与 Verilator interop 最小样例 | 已编译、链接、运行 | 证明修复路径闭环 |
 | 引擎层 CIRCT + Verilator 混合 IR/C++ | IR 验证和 SystemC 导出通过 | 供第二实现比对及继续开发 |
-| 引擎层混合 C++ 最终编译 | 未通过 | packed 聚合端口 ABI 仍需自动 pack/unpack |
+| 引擎层混合 C++ 最终编译 | x86 源码重建、链接、运行通过 | 5 个叶子模型与 CIRCT 容器形成最小混合闭环 |
+| packed 宽端口 ABI | 192 位端口编译通过 | CIRCT helper 自动桥接 `sc_biguint` 与 Verilator `VlWide` |
+| CDC shim | 单级、双级脉冲测试通过 | 不再用空壳同步器；仅代表通用仿真语义，不等价于专有工艺单元 |
 | 图像功能差分 | 未通过最终门禁 | 不能宣称完整 DSC 混合模型功能正确 |
 
-当前剩余问题不是 HW 层次或基本胶水逻辑丢失，而是聚合端口在 CIRCT 展平后与 Verilator C++
-模型的 packed 成员接口不一致。交接包同时保留导出的混合模型和首错日志，便于直接比较，不应把
-这份中间产物描述为“完整可编译的 CIRCT 内联 DSC 模型”。
+旧交接包直接编译原始聚合端口 RTL，导致 Verilator 只暴露 packed 成员，而 SystemC 容器访问
+展平成员；旧包不能作为可用交付。新流程统一从 prepared IR 生成两边的端口 ABI，并要求全新
+x86 CMake/CTest 已全部通过。交接包只携带源码、CMake 和验证脚本，不携带跨机器不可复用的
+预编译 `.a`。
 
 ## 9. 结果判定
 

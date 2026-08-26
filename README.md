@@ -7,7 +7,8 @@
   ├─ VESA C model → 单顶层 Function-TLM → 软件 golden
   ├─ Surelog/UHDM → 层次、端口、实例、连接结构合同
   ├─ CIRCT HW/Comb/Seq → 能转换多少就保留多少
-  └─ Verilator --sc → cycle-level 参考与暂时的黑盒替换
+  ├─ Verilator --sc → 完整 RTL cycle-level 独立参考
+  └─ Verilator --cc → CIRCT SystemC 容器中的叶子 interop
                          ↓
              Agent 补全 cycle SystemC
                          ↓
@@ -24,6 +25,7 @@
 | CIRCT core IR | x86 已生成 | HW/Comb/Seq/LLHD 分析入口有效 |
 | CIRCT HW SystemC | x86 完整通过 | 50 个 `SC_MODULE`、89 条定义级实例边，运行时展开 261 实例 |
 | CIRCT Comb/Seq SystemC | 未闭环 | LLHD 聚合降级已越过 `hw.bitcast`；当前首错为 `sim.fmt.literal` |
+| CIRCT + Verilator 混合 SystemC | x86 源码构建通过 | 引擎容器、5 个叶子、192 位 packed ABI、CDC shim 均通过编译和 smoke test |
 | 分层 Function SystemC | 深度 1 已验证 | 顶层与 7 个直属子模块通过事务级和 VESA golden 差分；深度 2～5 待验证 |
 | Verilator-SystemC | x86 已跑单体及 7 模块网络 | 共享 stimulus 下，拆分结构与单体逐周期一致 |
 | Agent cycle SystemC | `CycleApb` 已真实替换 | 与 Verilator APB 网络逐周期一致；其余模块仍为黑盒 |
@@ -76,6 +78,14 @@ dscflow uhdm-systemc prepare \
 dscflow circt run \
   --config configs/staged_circt.json \
   --output-root .work/runs/staged-circt
+```
+
+从私有 RTL 生成不含预编译库的可移植混合 SystemC 工程，并立即执行 CMake/CTest：
+
+```bash
+bash scripts/build_portable_dsc_mixed_project.sh \
+  inputs/private/rtl /path/to/circt/build /tmp/dsc-portable-build \
+  /path/to/systemc/cmake
 ```
 
 将同一套 UHDM、CIRCT 和 Verilator 内联流程复用到新的图像 IP，请使用
