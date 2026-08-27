@@ -1,5 +1,9 @@
 # 可移植 SystemC 混合集成源码包
 
+本目录是一个由 CIRCT 生成的混合模型交接包。包内的 `mixed_systemc.hpp` 必须在报告中明确
+对应的转换顶层；它不是完整图像 encoder 的自动替代品。引擎层包只覆盖 `dsce_engine`，完整
+顶层应使用仓库脚本以 `dsc_encoder` 重新生成。
+
 本工程不使用随包附带的预编译 `.a`。CMake 会在当前机器上重新运行 Verilator，使用
 `generated/interop_<模块名>.sv` 为每个叶子模块生成普通 C++ 模型，再与 CIRCT 导出的
 SystemC 容器一起编译和链接。
@@ -31,6 +35,16 @@ ctest --test-dir build --output-on-failure
 bash verify.sh . build /path/to/systemc/lib/cmake/SystemCLanguage
 ```
 
+完整 top 的生成入口（需要私有 RTL 和已安装的魔改 CIRCT）：
+
+```bash
+bash scripts/build_portable_dsc_mixed_project.sh \
+  /path/to/rtl /path/to/circt/build /tmp/dsc-encoder-build \
+  /path/to/systemc/cmake dsc_encoder \
+  dsce_reset,dsce_apb,dsce_timers,dsce_interrupt,dsce_pps,dsce_command,dsce_input_buffer,dsce_engine \
+  configs/portable_encoder_dsc.json
+```
+
 验收包括：
 
 1. `cdc-shim`：验证单级和双级同步器的采样延迟；
@@ -45,6 +59,7 @@ bash verify.sh . build /path/to/systemc/lib/cmake/SystemCLanguage
 generated/interop_<模块名>.sv
 generated/mixed_systemc.hpp
 generated/interop_modules.cmake
+generated/source_manifest.json   # conversion_top 与产物哈希
 tests/mixed_systemc_smoke.cpp
 ```
 

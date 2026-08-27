@@ -133,3 +133,7 @@ bash scripts/run_hybrid_differential_verification.sh
 - UHDM/systemc-clang 只验证结构，不能替代共享输入功能差分。
 - Verilator 模型来自同一份参考 RTL，可作 cycle-level 对照，但不等同于独立算法 golden。
 - 当前参考 RTL 缺少专有同步器和 SRAM 行为；仿真 shim 可启动功能路径，但不能证明专有原语精确等价。
+
+注意：现有已验证交接包的 `conversion_top` 是 `dsce_engine`，不是完整 `dsc_encoder`。完整 top
+入口已由 `configs/portable_encoder_dsc.json` 和脚本的顶层参数提供；在完整 top 的 x86 编译门禁
+通过前，不得把引擎层包称为完整 encoder。

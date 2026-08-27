@@ -272,6 +272,7 @@ def main() -> int:
     (tests / "mixed_systemc_smoke.cpp").write_text(smoke_source, encoding="utf-8")
     manifest = {
         "format": "portable-systemc-handoff-source-v1",
+        "conversion_top": args.container,
         "container": args.container,
         "interop_modules": args.modules,
         "inputs": {

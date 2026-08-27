@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [[ $# -lt 3 || $# -gt 4 ]]; then
-  echo "用法: $0 <私有RTL目录> <CIRCT构建目录> <全新工作目录> [SystemC CMake目录]" >&2
+if [[ $# -lt 3 || $# -gt 7 ]]; then
+  echo "用法: $0 <私有RTL目录> <CIRCT构建目录> <全新工作目录> [SystemC CMake目录] [顶层] [interop模块CSV] [配置文件]" >&2
   exit 2
 fi
 
@@ -10,9 +10,14 @@ rtl_root=$1
 circt_build=$2
 work_root=$3
 systemc_cmake_root=${4:-}
+top_module=${5:-dsce_engine}
+module_csv=${6:-dsce_pack,dsce_partition,dsce_slice,dsce_slice_mux,dsce_bypass}
+config_path=${7:-}
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 repository_root=$(cd "$script_dir/.." && pwd)
-module_csv=dsce_pack,dsce_partition,dsce_slice,dsce_slice_mux,dsce_bypass
+if [[ -z "$config_path" ]]; then
+  config_path="$repository_root/configs/portable_mixed_dsc.json"
+fi
 
 if [[ "$(uname -m)" != "x86_64" ]]; then
   echo "正式混合集成验证只能在 x86_64 Linux 执行。" >&2
@@ -40,7 +45,7 @@ set +e
 PYTHONPATH="$repository_root/src${PYTHONPATH:+:$PYTHONPATH}" \
 python3 -m dscflow circt run \
   --repo-root "$repository_root" \
-  --config "$repository_root/configs/portable_mixed_dsc.json" \
+  --config "$config_path" \
   --input-root "$rtl_root" \
   --output-root "$work_root/pipeline" \
   --run-id frontend \
@@ -50,16 +55,20 @@ frontend_status=$?
 set -e
 
 stage_dir=$work_root/pipeline/frontend/02_circt
-lowered_ir=$stage_dir/dsce_engine.llhd-lowered.mlir
-prepared_ir=$work_root/dsce_engine.prepared.mlir
-mixed_ir=$work_root/dsce_engine.mixed.systemc.mlir
-mixed_header=$work_root/dsce_engine.mixed.systemc.hpp
+lowered_ir=$stage_dir/$top_module.llhd-lowered.mlir
+prepared_ir=$work_root/$top_module.prepared.mlir
+mixed_ir=$work_root/$top_module.mixed.systemc.mlir
+mixed_header=$work_root/$top_module.mixed.systemc.hpp
 
 # The diagnostic workflow deliberately reports the unrelated, uninstantiated
 # dsce_quant source error, so its aggregate exit status may be non-zero even
-# when the reachable dsce_engine Core IR was produced successfully.
+# when the reachable top Core IR was produced successfully.
 if [[ ! -s "$lowered_ir" ]]; then
-  echo "dsce_engine 可达设计未生成 LLHD-lowered Core IR (dscflow=$frontend_status)" >&2
+  echo "$top_module 可达设计未生成 LLHD-lowered Core IR (dscflow=$frontend_status)" >&2
+  exit 1
+fi
+if ! rg -q "hw\.module (private )?@${top_module}[ (]" "$lowered_ir"; then
+  echo "Core IR 中没有请求的顶层 $top_module；拒绝把子模块结果误标为完整 top" >&2
   exit 1
 fi
 
@@ -88,7 +97,7 @@ python3 "$repository_root/tools/assemble_portable_systemc_handoff.py" \
   --prepared-ir "$prepared_ir" \
   --mixed-header "$mixed_header" \
   --frontend-record "$stage_dir/02_frontend_reachable_design.json" \
-  --container dsce_engine \
+  --container "$top_module" \
   --modules "$module_csv" \
   --circt-opt "$circt_build/bin/circt-opt" \
   --output "$work_root/project"
