@@ -41,7 +41,7 @@ bash verify.sh . build /path/to/systemc/lib/cmake/SystemCLanguage
 bash scripts/build_portable_dsc_mixed_project.sh \
   /path/to/rtl /path/to/circt/build /tmp/dsc-encoder-build \
   /path/to/systemc/cmake dsc_encoder \
-  dsce_reset,dsce_apb,dsce_timers,dsce_interrupt,dsce_pps,dsce_command,dsce_input_buffer,dsce_engine \
+  dsce_reset,dsce_apb,dsce_timers,dsce_interrupt,dsce_pps,dsce_command,dsce_engine \
   configs/portable_encoder_dsc.json
 ```
 

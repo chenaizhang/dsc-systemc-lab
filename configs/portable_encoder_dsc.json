@@ -53,7 +53,6 @@
       "dsce_interrupt",
       "dsce_pps",
       "dsce_command",
-      "dsce_input_buffer",
       "dsce_engine"
     ]
   }

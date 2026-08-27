@@ -41,6 +41,12 @@ done
 mkdir -p "$work_root/pipeline"
 export LD_LIBRARY_PATH="$circt_build/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 
+python3 "$repository_root/tools/check_conversion_scope.py" \
+  --hierarchy "$rtl_root/uhdm_module_hierarchy.json" \
+  --top "$top_module" \
+  --interop-modules "$module_csv" \
+  --output "$work_root/conversion_scope.json"
+
 set +e
 PYTHONPATH="$repository_root/src${PYTHONPATH:+:$PYTHONPATH}" \
 python3 -m dscflow circt run \
@@ -101,6 +107,9 @@ python3 "$repository_root/tools/assemble_portable_systemc_handoff.py" \
   --modules "$module_csv" \
   --circt-opt "$circt_build/bin/circt-opt" \
   --output "$work_root/project"
+
+cp "$work_root/conversion_scope.json" \
+  "$work_root/project/evidence/conversion_scope.json"
 
 bash "$repository_root/scripts/run_portable_handoff_verification.sh" \
   "$work_root/project" \
