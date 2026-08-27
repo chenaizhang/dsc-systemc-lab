@@ -18,6 +18,7 @@ UHDM 是结构参考，不负责生成行为，也不能替代功能差分。Ver
 
 - 流程、脚本和中文文档：<https://github.com/chenaizhang/dsc-systemc-lab>
 - CIRCT SystemC 修复分支：<https://github.com/chenaizhang/circt/tree/codex/systemc-backend>
+- Linux x86_64 已验证二进制：<https://github.com/chenaizhang/circt/releases/tag/systemc-backend-0.1.3>
 - 项目 Skill 来源：<https://github.com/trv3wood/eda-sandbox/tree/dev>
 
 由专有 RTL 派生的 Verilator/CIRCT 模型不进入公开仓库，应通过内部文件渠道传递。
@@ -81,7 +82,18 @@ dscflow skills --install
 
 安装状态会缓存；后续循环不会重复下载或检查安装来源。
 
-CIRCT 分支需要按 LLVM/CIRCT 的标准 CMake 流程构建，最终目录必须包含：
+如果使用 Ubuntu Linux x86_64，可直接下载已通过 CI 门禁的 Release：
+
+```bash
+sha256sum -c circt-systemc-*.tar.gz.sha256
+tar -xzf circt-systemc-*.tar.gz
+cd circt-systemc-547f06ebe6aa5ebef507ee78089310049118e656-linux-x86_64
+export PATH="$PWD/bin:$PATH"
+```
+
+该 Release 已通过 27/27 个 SystemC 相关回归，以及标量和 packed 聚合端口的
+Verilator/SystemC 生成、C++ 编译链接与运行测试。其他架构或需要修改 CIRCT 时，
+再按 LLVM/CIRCT 的标准 CMake 流程从分支构建。无论使用哪种方式，工具目录必须包含：
 
 ```text
 build/bin/circt-verilog
