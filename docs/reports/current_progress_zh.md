@@ -18,6 +18,8 @@
    及官方 VESA 向量完成 x86 字节级差分。
 10. CIRCT 行为推进：6 个 timed process、4 个 combinational process 已降到 Core；原
     `hw.bitcast` 首错已消除，新首错为 `sim.fmt.literal`。
+11. 完整顶层混合模型：CIRCT 生成 `dsc_encoder` 顶层 SystemC 胶水，UHDM 核对的 7 个直属
+    子模块全部通过 Verilator interop 从源码构建；x86 C++ 编译、链接及 CTest 2/2 通过。
 
 ## 尚未完成
 
@@ -26,6 +28,9 @@
    `sim.fmt.literal`/`sim.print` 阻塞。
 3. 因 Comb/Seq 尚未形成 candidate，底层 function 与 CIRCT 行为的逐模块语义对齐尚未开始。
 4. 参考 RTL 与 VESA golden 仍存在最终码流差异，format/stream 的 line-last/flush 路径仍需修正。
+
+完整顶层混合模型通过的是结构、ABI、编译链接和最小运行门禁，不包含独立图像 golden 差分；
+它与“全原生 Comb/Seq 已完成”是两件不同的事。
 
 ## 为什么这些项不能标成完成
 

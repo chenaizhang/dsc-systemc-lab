@@ -176,3 +176,15 @@ systemc.interop.verilated expected 37 operands but got 26
 5. 上述门禁通过后，再重跑完整 `dsc_encoder` 的 ExportSystemC、C++ 编译和逐周期差分。
 
 本报告不声称图像压缩最终输出已通过；本轮只验证 CIRCT 对真实层次、胶水逻辑、组合逻辑和时序逻辑的生成能力。
+
+## 8. 2026-08-28 完整顶层混合模型复测
+
+后续复测没有继续强行把 `dsce_bpvector` 全部原生转换，而是按本报告既定兜底策略，将
+`dsc_encoder` 的七个 UHDM 直属子模块作为 Verilator interop 边界，保留 CIRCT 生成的顶层
+SystemC 模块、信号和胶水逻辑。本轮额外修复了 interop 可执行更新的依赖排序，以及一位共享
+packed 表达式被错误物化为 `sc_bv<1>` 的问题。
+
+最终 `dsc_encoder` 完整混合模型在 x86_64 Linux 上从源码重新生成七个 Verilator 子模型，
+SystemC C++ 编译、链接、elaboration smoke test 和 CDC shim 均通过（CTest 2/2）。因此上文
+“完整数据通路尚不能解决”仍仅指**全原生 Comb/Seq SystemC**；不再代表完整顶层混合模型不能
+构建。图像输入与独立 golden 码流差分仍未在这项编译门禁中执行。

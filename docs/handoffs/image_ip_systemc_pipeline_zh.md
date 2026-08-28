@@ -18,7 +18,7 @@ UHDM 是结构参考，不负责生成行为，也不能替代功能差分。Ver
 
 - 流程、脚本和中文文档：<https://github.com/chenaizhang/dsc-systemc-lab>
 - CIRCT SystemC 修复分支：<https://github.com/chenaizhang/circt/tree/codex/systemc-backend>
-- Linux x86_64 已验证二进制：<https://github.com/chenaizhang/circt/releases/tag/systemc-backend-0.1.3>
+- Linux x86_64 已验证二进制：<https://github.com/chenaizhang/circt/releases/tag/systemc-backend-0.1.4>
 - 项目 Skill 来源：<https://github.com/trv3wood/eda-sandbox/tree/dev>
 
 由专有 RTL 派生的 Verilator/CIRCT 模型不进入公开仓库，应通过内部文件渠道传递。
@@ -87,7 +87,7 @@ dscflow skills --install
 ```bash
 sha256sum -c circt-systemc-*.tar.gz.sha256
 tar -xzf circt-systemc-*.tar.gz
-cd circt-systemc-547f06ebe6aa5ebef507ee78089310049118e656-linux-x86_64
+cd circt-systemc-5fff1f154467ade9a004d00284e76e78e7c09b02-linux-x86_64
 export PATH="$PWD/bin:$PATH"
 ```
 
@@ -228,6 +228,7 @@ ctest --test-dir build --output-on-failure
 | 基础 Comb/Seq 与 Verilator interop 最小样例 | 已编译、链接、运行 | 证明修复路径闭环 |
 | 引擎层 CIRCT + Verilator 混合 IR/C++ | IR 验证和 SystemC 导出通过 | 供第二实现比对及继续开发 |
 | 引擎层混合 C++ 最终编译 | x86 源码重建、链接、运行通过 | 5 个叶子模型与 CIRCT 容器形成最小混合闭环 |
+| 完整 encoder 混合 C++ | x86 源码重建、链接、运行通过 | CIRCT 顶层胶水 + UHDM 核对的 7 个直属 Verilator 子模块 |
 | packed 宽端口 ABI | 192 位端口编译通过 | CIRCT helper 自动桥接 `sc_biguint` 与 Verilator `VlWide` |
 | CDC shim | 单级、双级脉冲测试通过 | 不再用空壳同步器；仅代表通用仿真语义，不等价于专有工艺单元 |
 | 图像功能差分 | 未通过最终门禁 | 不能宣称完整 DSC 混合模型功能正确 |

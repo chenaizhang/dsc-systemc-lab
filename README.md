@@ -135,6 +135,8 @@ bash scripts/run_hybrid_differential_verification.sh
 - Verilator 模型来自同一份参考 RTL，可作 cycle-level 对照，但不等同于独立算法 golden。
 - 当前参考 RTL 缺少专有同步器和 SRAM 行为；仿真 shim 可启动功能路径，但不能证明专有原语精确等价。
 
-注意：现有已验证交接包的 `conversion_top` 是 `dsce_engine`，不是完整 `dsc_encoder`。完整 top
-入口已由 `configs/portable_encoder_dsc.json` 和脚本的顶层参数提供；在完整 top 的 x86 编译门禁
-通过前，不得把引擎层包称为完整 encoder。
+完整 `dsc_encoder` 顶层混合模型已在 x86 服务器通过源码重建门禁。流程用 UHDM 强制核对
+`dsce_reset`、`dsce_apb`、`dsce_timers`、`dsce_interrupt`、`dsce_pps`、`dsce_command` 和
+`dsce_engine` 七个直属子模块，CIRCT 生成顶层 SystemC 胶水，七个子模块由 Verilator 内联；
+C++ 编译、链接、elaboration smoke test 与 CDC shim 测试均通过。该结果证明完整顶层可构建运行，
+但不等同于图像码流已经与独立 golden 一致。

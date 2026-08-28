@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "date": "2026-08-28",
+  "platform": {
+    "architecture": "x86_64",
+    "operating_system": "Ubuntu Linux",
+    "compiler": "g++ 15.2.0",
+    "cmake": "4.2.3",
+    "verilator": "5.032",
+    "systemc": "3.0.2"
+  },
+  "circt": {
+    "branch": "codex/systemc-backend",
+    "revision": "5fff1f154467ade9a004d00284e76e78e7c09b02",
+    "release": "systemc-backend-0.1.4"
+  },
+  "scope": {
+    "conversion_top": "dsc_encoder",
+    "top_found": true,
+    "uhdm_direct_child_modules": [
+      "dsce_apb",
+      "dsce_command",
+      "dsce_engine",
+      "dsce_interrupt",
+      "dsce_pps",
+      "dsce_reset",
+      "dsce_timers"
+    ],
+    "selected_interop_modules": [
+      "dsce_apb",
+      "dsce_command",
+      "dsce_engine",
+      "dsce_interrupt",
+      "dsce_pps",
+      "dsce_reset",
+      "dsce_timers"
+    ],
+    "unknown_interop_modules": [],
+    "selected_non_direct_modules": [],
+    "native_direct_child_modules": []
+  },
+  "generated_systemc": {
+    "module": "dsc_encoder",
+    "header_size_bytes": 80172,
+    "verilated_direct_children": 7,
+    "linux_source_handoff_sha256": "2bee587bf7b2754e87105eae94e17762585944bd62e77142accdca6d0392d454"
+  },
+  "verification": {
+    "cmake_configure": "pass",
+    "cpp_compile_and_link": "pass",
+    "mixed_systemc_smoke": "pass",
+    "cdc_shim": "pass",
+    "fresh_archive_rebuild": "pass",
+    "ctest_passed": 2,
+    "ctest_failed": 0,
+    "functional_equivalence": "not_run_no_shared_stimulus_or_independent_golden"
+  }
+}
