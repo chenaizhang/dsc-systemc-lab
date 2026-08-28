@@ -73,7 +73,12 @@ if [[ ! -s "$lowered_ir" ]]; then
   echo "$top_module 可达设计未生成 LLHD-lowered Core IR (dscflow=$frontend_status)" >&2
   exit 1
 fi
-if ! rg -q "hw\.module (private )?@${top_module}[ (]" "$lowered_ir"; then
+if command -v rg >/dev/null 2>&1; then
+  top_pattern_found=$(rg -c "hw\.module (private )?@${top_module}[ (]" "$lowered_ir" || true)
+else
+  top_pattern_found=$(grep -Ec "hw\.module (private )?@${top_module}[ (]" "$lowered_ir" || true)
+fi
+if [[ "$top_pattern_found" -eq 0 ]]; then
   echo "Core IR 中没有请求的顶层 $top_module；拒绝把子模块结果误标为完整 top" >&2
   exit 1
 fi

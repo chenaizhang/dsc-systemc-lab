@@ -25,16 +25,16 @@ bash verify.sh . build /path/to/systemc/cmake
 
 | 检查项 | 结果 | 证据 |
 |---|---|---|
-| 5 个 Verilator 叶子从 SV 生成 | 通过 | CMake build 日志 |
+| manifest 中选择的 Verilator 子模块从 SV 生成 | 通过 | `generated/source_manifest.json` 与 CMake build 日志 |
 | CIRCT SystemC 容器编译 | 通过 | `mixed_systemc_smoke` 构建成功 |
 | SystemC 与 Verilator 链接 | 通过 | `mixed_systemc_smoke` 链接成功 |
-| 192 位 packed 端口 ABI | 通过 | `sc_biguint<192>` 与 `VlWide<6>` helper 参与真实编译 |
+| packed 宽端口 ABI | 通过 | `circt_systemc_verilator_wide.h` 参与真实编译 |
 | SystemC elaboration/零时间运行 | 通过 | `MIXED_SYSTEMC_SMOKE=PASS` |
 | 单级、双级 CDC 同步延迟 | 通过 | `CDC_SHIM_TEST=PASS` |
 | CTest | 2/2 通过 | `verification/ctest.log` |
 
-CIRCT 还修复了共享 packed 表达式的重复内联：真实生成头文件由约 20 MB 降至约
-124 KB，避免普通虚拟机在编译阶段消耗过多内存。
+CIRCT 还会把共享 packed 表达式物化为局部值，避免相同表达式树在多个使用点被递归展开，
+从而控制生成头文件大小和 C++ 编译内存占用。
 
 ## 4. 结论与边界
 
