@@ -12,7 +12,11 @@
   "circt": {
     "branch": "codex/systemc-backend",
     "revision": "5fff1f154467ade9a004d00284e76e78e7c09b02",
-    "release": "systemc-backend-0.1.4"
+    "release": "systemc-backend-0.1.4",
+    "release_ci_run": 33152804209,
+    "release_archive_sha256": "a0b8dd4e5a3c94021695a1d2eece7c278a6435ac05e0df5d16fa77a938b32ca7",
+    "release_archive_checksum": "pass",
+    "release_binary_full_top_rebuild": "pass"
   },
   "scope": {
     "conversion_top": "dsc_encoder",
