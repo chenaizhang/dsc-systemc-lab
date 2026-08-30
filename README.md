@@ -121,7 +121,9 @@ bash scripts/run_hybrid_differential_verification.sh
 分层 SystemC 结果见
 [中文完整报告](docs/reports/layered_systemc_equivalence_x86.md)；历史混合差分结果见
 [混合差分报告](docs/reports/hybrid_differential_x86.md)；可分发 CIRCT 工具的构建和混合回归结果见
-[CIRCT SystemC Release 验证报告](docs/reports/circt_systemc_release_x86_zh.md)。
+[CIRCT SystemC Release 验证报告](docs/reports/circt_systemc_release_x86_zh.md)；最新版 interop、
+`structure-only`、`seq.firmem` 和全局 aggregate 的定向复测见
+[CIRCT interop 回归复测报告](docs/reports/circt_interop_regression_retest_x86_zh.md)。
 
 当前 format/stream 排障已经把原来的多个确认项压缩为一个资料请求：提供正式 last/flush 实现，
 或一个 slice 连续两行的正确 VCS 边界波形。详见

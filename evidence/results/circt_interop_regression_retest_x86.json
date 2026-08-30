@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "date": "2026-08-30",
+  "platform": "x86_64-linux",
+  "circt": {
+    "release": "systemc-backend-0.1.4",
+    "revision": "5fff1f154467ade9a004d00284e76e78e7c09b02"
+  },
+  "tools": {
+    "verilator": "5.032",
+    "systemc": "3.0.2",
+    "compiler": "g++ 15.2.0"
+  },
+  "input_scope": {
+    "available_bundle_hw_modules": 50,
+    "available_bundle_definition_instances": 89,
+    "reported_unavailable_filelist_hw_modules": 49,
+    "reported_unavailable_filelist_definition_instances": 128,
+    "reported_unavailable_filelist_expanded_instances": 417,
+    "exact_417_instance_filelist_available": false
+  },
+  "results": {
+    "interop_forward_definition_dominance": "pass",
+    "interop_final_ir_verifier": "pass",
+    "structure_only_with_interop_exit_code": 0,
+    "structure_only_verilated_members": 0,
+    "structure_only_native_instance_declarations": 0,
+    "structure_only_interop_operations": 0,
+    "structure_only_instance_integrity": "fail_silent_drop_confirmed",
+    "native_systemc": "fail_seq_firmem_256x8_mask1",
+    "global_aggregate_pipeline": "pass_with_internal_storage_expansion",
+    "global_aggregate_max_integer_width": 196608,
+    "global_aggregate_integer_width_ge_1000000": 0,
+    "seven_module_mixed_scope": "pass_7_of_7",
+    "seven_module_cpp_compile_link": "pass",
+    "seven_module_ctest_passed": 2,
+    "seven_module_ctest_failed": 0
+  },
+  "conclusion": {
+    "dominance_bug": "fixed_in_0.1.4",
+    "structure_only_interop_bug": "confirmed",
+    "boundary_limited_aggregate_lowering": "not_implemented",
+    "exact_latest_filelist_retest": "blocked_missing_exact_filelist_and_primitive_sources"
+  }
+}
