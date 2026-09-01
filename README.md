@@ -64,6 +64,23 @@ bash scripts/run_python_tests.sh
 dscflow skills
 ```
 
+### CIRCT 按层次剥离
+
+当前主线允许只展开指定深度的 RTL 层次。边界以下行为不会进入 Comb/Seq lowering，因而
+`seq.firmem`、内部大数组或尚未支持的操作不会阻塞上层 SystemC 骨架：
+
+```bash
+make hierarchy-x86 \
+  CORE_IR=/path/to/dsc_encoder.hw.mlir \
+  TOP=dsc_encoder \
+  DEPTH=1 \
+  UHDM_JSON=evidence/uhdm/module_hierarchy.json
+```
+
+输出目录包含切片 HW IR、manifest、SystemC dialect、可编译 C++ 头文件和结构验证 JSON。
+详细语义与验收规则见
+[`docs/workflows/circt_hierarchy_peeling_zh.md`](docs/workflows/circt_hierarchy_peeling_zh.md)。
+
 生成 UHDM 约束和逐模块完整 SV 提示包：
 
 ```bash

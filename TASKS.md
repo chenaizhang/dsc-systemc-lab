@@ -6,7 +6,7 @@
 |---|---|---|---|
 | T1 | x86 环境与输入基线 | 私有 RTL/spec、VESA model | 资产 SHA、Python 回归、SystemC/VESA 三路测试通过 ✅ |
 | T2 | UHDM 结构重建 | `inputs/private/rtl/surelog.f` | 261 实例层次已恢复；端口宽度已用 CIRCT HW IR 补全（3,243/3,243），结构指纹已更新 ✅ |
-| T3 | CIRCT 分阶段定位 | T2 RTL/UHDM、CIRCT | HW-only 已生成并运行 261 实例；LLHD 聚合降级已越过 `hw.bitcast`，当前首阻塞为 `sim.fmt.literal` |
+| T3 | CIRCT 分阶段与层次剥离 | T2 RTL/UHDM、CIRCT | HW-only 已生成并运行 261 实例；新增深度受控的 HW 层次切片、frontier behavior slot 和结构清单；真实 DSC 各深度 x86 复测进行中 |
 | T4 | 分层 Function SystemC | T2 结构合同、顶层 function、逐模块 SV | 顶层及深度 1 的 7 个 function 已通过事务级和 VESA golden 差分；深度 2～5 待实现 |
 | T5 | 共享 stimulus 与软件 golden | 公司向量或批准的 VESA 向量 | Function-TLM 输出获得 golden-qualified 结果集 ✅ |
 | T6 | 差分与混合替换 | T4、T5、Verilator --sc | 首错定位到 format/stream；行为合同已推导（每行 16 muxword、128/216 行需补零 flush）；按合同修复 overlay 进行中 |
@@ -28,3 +28,13 @@
 - 行为线：Comb/Seq SSA 已提取，LLHD 聚合降级已越过 `hw.bitcast`；完整 SystemC lowering
   当前停在 `sim.fmt.literal`。
 - 机器证据：`evidence/results/layered_systemc_equivalence_x86.json`。
+
+## 附：CIRCT 层次剥离（2026-09-01 新增）
+
+- CIRCT fork 新增 `hw-extract-hierarchy-slice`，按 `top/max-depth` 保留结构并把边界
+  `hw.module` 外部化，边界以下的 Comb、Seq、Memory 和 Aggregate 不进入转换。
+- `convert-hw-to-systemc=structure-only` 会把 frontier 声明生成可编译的
+  `behaviorSlot`，保留端口、实例和绑定，不把空壳误报为已实现行为。
+- 每层生成 JSON manifest，并由 `tools/verify_circt_hierarchy_slice.py` 核对 HW、SystemC
+  和可选 UHDM 顶层直属实例。
+- Verilator interop 不属于这项任务的验收范围。
