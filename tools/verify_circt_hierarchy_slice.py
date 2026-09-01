@@ -66,6 +66,13 @@ def uhdm_direct_children(path: Path, top: str) -> Counter[tuple[str, str]]:
     return results
 
 
+def normalize_circt_specialization(target: str, references: set[str]) -> str:
+    if target in references:
+        return target
+    matches = [name for name in references if target.startswith(name + "_")]
+    return max(matches, key=len) if matches else target
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--manifest", type=Path, required=True)
@@ -100,15 +107,16 @@ def main() -> int:
 
     uhdm_result: dict[str, object] | None = None
     if args.uhdm_json:
+        reference_direct = uhdm_direct_children(args.uhdm_json, manifest["top"])
+        reference_targets = {target for _, target in reference_direct}
         circt_direct = Counter(
-            (instance, target)
+            (instance, normalize_circt_specialization(target, reference_targets))
             for parent, instance, target in actual_edges
             if parent == manifest["top"]
         )
-        reference_direct = uhdm_direct_children(args.uhdm_json, manifest["top"])
-        # Parameter-specialized CIRCT definitions retain the source module name
-        # as a prefix. Compare exact names first and report the evidence either
-        # way; never silently accept a mismatch.
+        # CIRCT parameter specialization appends a suffix to the source module
+        # name. Normalize only when the prefix names an actual UHDM child; all
+        # other mismatches remain visible and fail the gate.
         checks["uhdm_top_direct_children"] = circt_direct == reference_direct
         uhdm_result = {
             "circt": sorted([list(item) + [count] for item, count in circt_direct.items()]),
