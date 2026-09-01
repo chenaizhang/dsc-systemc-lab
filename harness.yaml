@@ -40,6 +40,9 @@ checks:
   - id: circt-min-repros-x86
     category: test
     command: [bash, scripts/run_circt_min_repros.sh]
+  - id: circt-hierarchy-peeling-x86
+    category: test
+    command: [bash, scripts/run_circt_hierarchy_peeling_repro.sh]
   - id: hybrid-differential-x86
     category: test
     command: [bash, scripts/run_hybrid_differential_verification.sh]
