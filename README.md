@@ -80,6 +80,8 @@ make hierarchy-x86 \
 输出目录包含切片 HW IR、manifest、SystemC dialect、可编译 C++ 头文件和结构验证 JSON。
 详细语义与验收规则见
 [`docs/workflows/circt_hierarchy_peeling_zh.md`](docs/workflows/circt_hierarchy_peeling_zh.md)。
+真实 DSC 的逐层结果见
+[`docs/reports/circt_hierarchy_peeling_x86_zh.md`](docs/reports/circt_hierarchy_peeling_x86_zh.md)。
 
 生成 UHDM 约束和逐模块完整 SV 提示包：
 

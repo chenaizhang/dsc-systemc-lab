@@ -110,9 +110,12 @@ def main() -> int:
         reference_direct = uhdm_direct_children(args.uhdm_json, manifest["top"])
         reference_targets = {target for _, target in reference_direct}
         circt_direct = Counter(
-            (instance, normalize_circt_specialization(target, reference_targets))
-            for parent, instance, target in actual_edges
-            if parent == manifest["top"]
+            (
+                edge["instance"],
+                normalize_circt_specialization(edge["target"], reference_targets),
+            )
+            for edge in manifest["instances"]
+            if edge["parent"] == manifest["top"]
         )
         # CIRCT parameter specialization appends a suffix to the source module
         # name. Normalize only when the prefix names an actual UHDM child; all
