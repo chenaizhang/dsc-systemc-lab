@@ -12,6 +12,8 @@ SystemC 骨架。Verilator 不在本次验证范围内。
 - SystemC：3.0.2；
 - CIRCT fork 分支：`codex/systemc-backend`；
 - 验证源码 revision：`1dc04c4e9`；
+- 验证 Release：`systemc-backend-0.1.5`；
+- Release 构建：GitHub Actions Ubuntu 24.04 x86_64，全部步骤通过；
 - 输入：CIRCT Slang frontend 已展开的 `dsc_encoder` HW IR；
 - 结构参考：UHDM `module_hierarchy.json`。
 
@@ -60,13 +62,19 @@ depth 1 的七个直属实例为：
 以上实例名和定义名与 UHDM 参考逐项一致。depth 6 时 frontier 归零，50 个 CIRCT 参数特化后
 模块定义和 89 条定义级实例边全部进入 SystemC 骨架。
 
-机器证据位于 `evidence/results/circt_hierarchy_peeling_x86/`。
+开发构建的机器证据位于 `evidence/results/circt_hierarchy_peeling_x86/`。发布后二次验证没有使用
+服务器工作区的 CIRCT，而是校验并解压 Release 压缩包，再用其中的三个工具重新执行 depth 0～6；
+结果同样全部通过。Release 二次验证证据位于
+`evidence/results/circt_hierarchy_peeling_release_0_1_5_x86/`。
 
 ## 5. 结论
 
 当前 CIRCT fork 已能对真实 DSC 执行统一深度的层次剥离：未展开层的行为不会阻塞上层，展开层
 的端口、实例、通道和绑定可以生成可编译 SystemC，并由 UHDM 辅助验证。这个结论只覆盖结构
 和胶水连接，不表示 frontier 的算法、组合逻辑或时序逻辑已经实现。
+
+可复用的 Linux x86_64 二进制发布于：
+<https://github.com/chenaizhang/circt/releases/tag/systemc-backend-0.1.5>。
 
 当前仍保留一个明确限制：同一模块定义的不同实例不能在同一次切片中设置不同深度。若后续需要
 实例路径级非对称展开，必须先克隆共享模块定义并重写对应实例引用。

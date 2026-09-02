@@ -1,17 +1,19 @@
-# CIRCT SystemC Linux x86_64 Release 验证报告
+# CIRCT SystemC Linux x86_64 Release 0.1.5 验证报告
 
 ## 目的
 
-验证定制 CIRCT 能否在干净 Linux x86_64 环境构建为可分发工具，并复查交接中曾发现的
-Verilator interop、packed 聚合端口和 SystemC 编译问题。
+验证定制 CIRCT 能否在干净 Linux x86_64 环境构建为可分发工具，并使用发布包而非开发构建，
+对真实 `dsc_encoder` 执行逐层结构剥离、SystemC 导出、编译和 UHDM 对照。
 
 ## 输入与环境
 
 - 源码分支：`codex/systemc-backend`
-- 源码修订：`5fff1f154467ade9a004d00284e76e78e7c09b02`
+- 源码修订：`1dc04c4e9858d00d5820c417d64db26a6fd9322b`
 - CI 环境：Ubuntu 24.04 x86_64
 - 工具：Clang、CMake、Ninja、Verilator、SystemC
-- CI 记录：<https://github.com/chenaizhang/circt/actions/runs/33152804209>
+- CI 记录：<https://github.com/chenaizhang/circt/actions/runs/33615733872>
+- Release：`systemc-backend-0.1.5`
+- 实验机：Linux x86_64，SystemC 3.0.2
 
 ## 实测结果
 
@@ -23,44 +25,46 @@ Verilator interop、packed 聚合端口和 SystemC 编译问题。
 | packed struct/array 展平端口 interop | 生成、编译、链接、运行通过 |
 | Release SHA-256 | 下载后本地校验通过 |
 | Release 内容 | 三个工具、LICENSE、README、BUILD_INFO 齐全 |
-| 完整 `dsc_encoder` 混合 SystemC | x86 源码重建、编译、链接和运行通过 |
-| UHDM 顶层范围 | 7/7 个直属子模块与 interop 选择完全一致 |
-| DSC CTest | 2/2 通过（顶层 smoke、CDC shim） |
+| 层次剥离 pass | Release 中存在，能够直接调用 |
+| `dsc_encoder` depth 0～6 | 逐级导出 SystemC 并通过 C++ 语法编译 |
+| UHDM 顶层范围 | 7/7 个直属子模块名称和定义完全一致 |
+| 完整结构 | 50 个特化模块、89 条实例边全部进入 SystemC 骨架 |
 
-混合仿真日志最终输出：
+depth 0～6 的模块、frontier 和实例边数量依次为：
 
-```text
-verilated mixed SystemC scalar and aggregate tests: PASS
-```
+| depth | 模块 | frontier | 实例边 | 结果 |
+|---:|---:|---:|---:|---|
+| 0 | 1 | 1 | 0 | 通过 |
+| 1 | 8 | 7 | 7 | 通过 |
+| 2 | 16 | 8 | 31 | 通过 |
+| 3 | 27 | 11 | 43 | 通过 |
+| 4 | 47 | 20 | 66 | 通过 |
+| 5 | 50 | 3 | 89 | 通过 |
+| 6 | 50 | 0 | 89 | 通过 |
 
 ## 对旧问题的复查
 
-- packed ABI 不匹配：已在引擎级交接包和 CIRCT Release 的聚合端口测试中通过。
-- SystemC 只能导出顶层空壳：当前门禁会把导出的容器与 Verilator 叶子实际编译链接并运行。
-- CDC 空壳：DSC 流程已强制使用可执行 shim，并有单级、双级脉冲测试；该测试属于 DSC 项目证据，不是 CIRCT 通用 Release 的语义。
-- 顶层范围误标：流程现在用 UHDM 强制检查 `conversion_top=dsc_encoder`，且 7 个直属子模块与选择的 interop 模块完全一致。
+- 顶层 package helper 泄漏：structure-only 收尾会移除模块外的行为 helper，真实设计不再被
+  `llhd.coroutine` 阻塞。
+- 只能一次性处理整个层次：新增按最大深度切片的 pass，边界模块自动变为可编译的行为插槽。
+- 层次靠脚本猜测：新增 JSON manifest，并同时对照 HW IR、SystemC 和 UHDM。
+- 只验证开发目录：本轮完整实验直接使用 Release 压缩包中的工具，排除了未发布补丁的影响。
 
-完整顶层实测使用 `dsc_encoder` 作为容器，不再以 `dsce_engine` 冒充 encoder。生成头文件包含唯一的
-`SC_MODULE(dsc_encoder)`，并实例化 `Vdsce_reset`、`Vdsce_apb`、`Vdsce_timers`、
-`Vdsce_interrupt`、`Vdsce_pps`、`Vdsce_command` 和 `Vdsce_engine`。生成头文件约 80 KiB；
-所有 Verilator 模型均由交接包的 CMake 在目标机从源码重新生成，没有复用跨平台 `.a`。
-
-本轮还修复了两个真实顶层才会触发的 CIRCT 问题：
-
-1. Verilator interop 是 `SC_METHOD` 中的可执行更新，不应像原生 `hw.instance` 一样跳过输入依赖排序；
-2. 多次使用的一位 packed 表达式必须物化为原生 `bool`，不能先变成 `sc_bv<1>` 再生成非法的
-   `bool(sc_bv<1>)`。
+depth 1 明确保留 `dsc_encoder` 及其 7 个直属子模块；depth 6 时 frontier 归零。每个深度均依次
+通过切片后的 MLIR 校验、HW-to-SystemC structure-only 转换、SystemC IR 校验、ExportSystemC、
+SystemC C++ 语法编译和结构门禁。
 
 ## 结论与边界
 
-CIRCT SystemC 定制工具已达到 Linux x86_64 上可下载、可校验、可执行的交付状态；完整私有
-`dsc_encoder` 的结构范围检查、SystemC 生成、C++ 编译链接和运行门禁也已通过。
+CIRCT SystemC 定制工具已达到 Linux x86_64 上可下载、可校验、可执行的交付状态；真实
+`dsc_encoder` 的逐层剥离、结构范围检查、SystemC 生成和 C++ 编译门禁均已通过。
 
-这里验证的是“完整顶层混合模型可构建、可 elaboration、CDC shim 可运行”。测试包没有共享的
-图像刺激与独立参考码流，因此本轮没有执行图像功能差分，不能据此宣称压缩算法输出正确。
+这里验证的是“CIRCT 能按层次拆分并生成可编译的 SystemC 结构”。frontier 的行为插槽仍是空壳，
+本轮没有验证 Comb/Seq 行为、图像刺激或参考码流，不能据此宣称压缩算法输出正确。
 
 ## 交付
 
-- Release：<https://github.com/chenaizhang/circt/releases/tag/systemc-backend-0.1.4>
+- Release：<https://github.com/chenaizhang/circt/releases/tag/systemc-backend-0.1.5>
 - 源码分支：<https://github.com/chenaizhang/circt/tree/codex/systemc-backend>
 - 调用流程：<https://github.com/chenaizhang/dsc-systemc-lab/blob/main/docs/handoffs/image_ip_systemc_pipeline_zh.md>
+- 机器证据：`evidence/results/circt_hierarchy_peeling_release_0_1_5_x86/`

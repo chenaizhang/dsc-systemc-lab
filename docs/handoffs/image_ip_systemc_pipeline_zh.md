@@ -18,7 +18,7 @@ UHDM 是结构参考，不负责生成行为，也不能替代功能差分。Ver
 
 - 流程、脚本和中文文档：<https://github.com/chenaizhang/dsc-systemc-lab>
 - CIRCT SystemC 修复分支：<https://github.com/chenaizhang/circt/tree/codex/systemc-backend>
-- Linux x86_64 已验证二进制：<https://github.com/chenaizhang/circt/releases/tag/systemc-backend-0.1.4>
+- Linux x86_64 已验证二进制：<https://github.com/chenaizhang/circt/releases/tag/systemc-backend-0.1.5>
 - 项目 Skill 来源：<https://github.com/trv3wood/eda-sandbox/tree/dev>
 
 由专有 RTL 派生的 Verilator/CIRCT 模型不进入公开仓库，应通过内部文件渠道传递。
@@ -87,7 +87,7 @@ dscflow skills --install
 ```bash
 sha256sum -c circt-systemc-*.tar.gz.sha256
 tar -xzf circt-systemc-*.tar.gz
-cd circt-systemc-5fff1f154467ade9a004d00284e76e78e7c09b02-linux-x86_64
+cd circt-systemc-1dc04c4e9858d00d5820c417d64db26a6fd9322b-linux-x86_64
 export PATH="$PWD/bin:$PATH"
 ```
 

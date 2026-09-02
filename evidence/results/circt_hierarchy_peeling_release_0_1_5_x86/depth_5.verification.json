@@ -1,0 +1,95 @@
+{
+  "status": "pass",
+  "top": "dsc_encoder",
+  "max_depth": 5,
+  "checks": {
+    "manifest_schema": true,
+    "hw_module_set": true,
+    "hw_instance_edges": true,
+    "systemc_module_set": true,
+    "frontier_is_retained": true,
+    "frontier_has_no_retained_children": true,
+    "uhdm_top_direct_children": true
+  },
+  "counts": {
+    "retained_modules": 50,
+    "frontier_modules": 3,
+    "retained_instances": 89
+  },
+  "uhdm_top_direct_children": {
+    "circt": [
+      [
+        "dsce_apb_inst",
+        "dsce_apb",
+        1
+      ],
+      [
+        "dsce_command_inst",
+        "dsce_command",
+        1
+      ],
+      [
+        "dsce_engine_inst",
+        "dsce_engine",
+        1
+      ],
+      [
+        "dsce_interrupt_inst",
+        "dsce_interrupt",
+        1
+      ],
+      [
+        "dsce_pps_inst",
+        "dsce_pps",
+        1
+      ],
+      [
+        "dsce_reset_inst",
+        "dsce_reset",
+        1
+      ],
+      [
+        "dsce_timers_inst",
+        "dsce_timers",
+        1
+      ]
+    ],
+    "reference": [
+      [
+        "dsce_apb_inst",
+        "dsce_apb",
+        1
+      ],
+      [
+        "dsce_command_inst",
+        "dsce_command",
+        1
+      ],
+      [
+        "dsce_engine_inst",
+        "dsce_engine",
+        1
+      ],
+      [
+        "dsce_interrupt_inst",
+        "dsce_interrupt",
+        1
+      ],
+      [
+        "dsce_pps_inst",
+        "dsce_pps",
+        1
+      ],
+      [
+        "dsce_reset_inst",
+        "dsce_reset",
+        1
+      ],
+      [
+        "dsce_timers_inst",
+        "dsce_timers",
+        1
+      ]
+    ]
+  }
+}
