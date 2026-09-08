@@ -87,14 +87,17 @@ scripts/run_circt_hierarchy_peeling.sh \
 
 1. `hw-extract-hierarchy-slice`；
 2. MLIR verifier；
-3. 根据 `DSCFLOW_SYSTEMC_MODE` 运行 structure-only 或完整 `convert-hw-to-systemc`；
-4. `ExportSystemC`；
-5. SystemC C++ 语法编译；
-6. manifest、切片 HW、生成 SystemC 和可选 UHDM 的结构对比。
+3. `behavior` 模式先运行 LLHD 清理、内联和 timed-process→Seq；
+4. 根据 `DSCFLOW_SYSTEMC_MODE` 运行 structure-only 或完整 `convert-hw-to-systemc`；
+5. `ExportSystemC`；
+6. SystemC C++ 语法编译；
+7. manifest、切片 HW、生成 SystemC 和可选 UHDM 的结构对比。
 
 ## 4. 输出与门禁
 
-输出包括 `depth_N.hw.mlir`、manifest、SystemC MLIR/C++ 和 verification JSON。
+输出包括 `depth_N.hw.mlir`、manifest、SystemC MLIR/C++ 和 verification JSON。行为模式还保留
+`depth_N.llhd-core.mlir` 与 `depth_N.prepared.mlir`，用来定位是 LLHD→Seq 还是
+HW/Comb/Seq→SystemC 失败。
 验证报告只有在以下条件全部满足时才为 `pass`：
 
 - HW 模块集合等于 manifest 的 retained 集合；
