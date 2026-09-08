@@ -72,6 +72,9 @@ export DSCFLOW_SYSTEMC_MODE=structure
 export DSCFLOW_SYSTEMC_MODE=behavior
 ```
 
+Make 入口可写为 `make hierarchy-x86 ... MODE=behavior`。structure 与 behavior 结果分别放在
+模式子目录中，避免后一次运行覆盖前一次证据。
+
 运行单层：
 
 ```bash

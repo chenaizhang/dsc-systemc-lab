@@ -83,6 +83,9 @@ make hierarchy-x86 \
 export DSCFLOW_SYSTEMC_MODE=behavior
 ```
 
+也可以直接使用 `make hierarchy-x86 ... MODE=behavior`；两种模式写入不同输出目录，不会互相
+覆盖证据。
+
 其中存储器会生成为 `std::array` 仿真模型；当前范围是读延迟 0/1、写延迟 1 和整字/单 bit
 mask。延迟线程的 SystemC 发射端支持 `SC_THREAD + wait()`，但 SV delayed task 到该表示的
 LLHD 源端转换仍是未完成项。

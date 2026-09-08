@@ -1,5 +1,7 @@
 .PHONY: assets test skills prepare-agent function-x86 circt-x86 hierarchy-x86
 
+MODE ?= structure
+
 assets:
 	python3 tools/check_assets.py
 
@@ -20,7 +22,7 @@ circt-x86:
 
 hierarchy-x86:
 	@test -n "$(CORE_IR)" -a -n "$(TOP)" -a -n "$(DEPTH)" || \
-	  (echo "用法: make hierarchy-x86 CORE_IR=... TOP=... DEPTH=... [UHDM_JSON=...]" >&2; exit 2)
-	./scripts/run_circt_hierarchy_peeling.sh \
+	  (echo "用法: make hierarchy-x86 CORE_IR=... TOP=... DEPTH=... [MODE=structure|behavior] [UHDM_JSON=...]" >&2; exit 2)
+	DSCFLOW_SYSTEMC_MODE="$(MODE)" ./scripts/run_circt_hierarchy_peeling.sh \
 	  "$(CORE_IR)" "$(TOP)" "$(DEPTH)" \
-	  ".work/runs/hierarchy/$(TOP)/depth-$(DEPTH)" "$(UHDM_JSON)"
+	  ".work/runs/hierarchy/$(TOP)/$(MODE)/depth-$(DEPTH)" "$(UHDM_JSON)"
