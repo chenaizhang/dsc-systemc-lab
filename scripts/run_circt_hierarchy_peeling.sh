@@ -48,6 +48,7 @@ esac
 slice_ir="$output_dir/depth_${max_depth}.hw.mlir"
 manifest="$output_dir/depth_${max_depth}.manifest.json"
 llhd_core_ir="$output_dir/depth_${max_depth}.llhd-core.mlir"
+timed_ir="$output_dir/depth_${max_depth}.timed.mlir"
 prepared_ir="$output_dir/depth_${max_depth}.prepared.mlir"
 systemc_ir="$output_dir/depth_${max_depth}.systemc.mlir"
 systemc_cpp="$output_dir/depth_${max_depth}.systemc.hpp"
@@ -61,7 +62,9 @@ if [[ "$systemc_mode" == behavior ]]; then
   "$optimizer" --pass-pipeline='builtin.module(hw.module(llhd-wrap-procedural-ops),llhd-inline-calls,llhd-inline-suspend-free-coroutines,symbol-dce,hw.module(sroa,llhd-mem2reg,llhd-hoist-signals,llhd-deseq,llhd-lower-processes,cse,canonicalize,llhd-unroll-loops,cse,canonicalize,llhd-remove-control-flow,cse,canonicalize,map-arith-to-comb{enable-best-effort-lowering=true},llhd-combine-drives,llhd-sig2reg,cse,canonicalize))' \
     "$slice_ir" -o "$llhd_core_ir"
   "$optimizer" --mlir-disable-threading --llhd-lower-timed-processes \
-    "$llhd_core_ir" -o "$prepared_ir"
+    "$llhd_core_ir" -o "$timed_ir"
+  "$optimizer" --pass-pipeline='builtin.module(hw.module(canonicalize,seq-reg-of-vec-to-mem,canonicalize))' \
+    "$timed_ir" -o "$prepared_ir"
   conversion_input="$prepared_ir"
 fi
 "$optimizer" "${conversion_options[@]}" \
