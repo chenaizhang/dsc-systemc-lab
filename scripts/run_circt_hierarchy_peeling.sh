@@ -14,6 +14,7 @@ output_dir=$4
 uhdm_json=${5:-}
 circt_root="${DSCFLOW_CIRCT_ROOT:-$HOME/.local/opt/circt-systemc-fork}"
 library_path="${DSCFLOW_CIRCT_LIBRARY_PATH:-$circt_root/lib}"
+systemc_mode="${DSCFLOW_SYSTEMC_MODE:-structure}"
 optimizer="$circt_root/bin/circt-opt"
 translator="$circt_root/bin/circt-translate"
 cxx="${CXX:-c++}"
@@ -35,6 +36,15 @@ fi
 mkdir -p "$output_dir"
 export LD_LIBRARY_PATH="$library_path${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 
+case "$systemc_mode" in
+  structure) conversion_options=(--convert-hw-to-systemc="structure-only=true") ;;
+  behavior) conversion_options=(--convert-hw-to-systemc) ;;
+  *)
+    echo "error: DSCFLOW_SYSTEMC_MODE must be 'structure' or 'behavior'" >&2
+    exit 2
+    ;;
+esac
+
 slice_ir="$output_dir/depth_${max_depth}.hw.mlir"
 manifest="$output_dir/depth_${max_depth}.manifest.json"
 systemc_ir="$output_dir/depth_${max_depth}.systemc.mlir"
@@ -44,7 +54,7 @@ report="$output_dir/depth_${max_depth}.verification.json"
 "$optimizer" \
   --hw-extract-hierarchy-slice="top=$top max-depth=$max_depth manifest=$manifest" \
   "$core_ir" -o "$slice_ir"
-"$optimizer" --convert-hw-to-systemc="structure-only=true" \
+"$optimizer" "${conversion_options[@]}" \
   "$slice_ir" -o "$systemc_ir"
 "$optimizer" "$systemc_ir" -o /dev/null
 "$translator" --export-systemc "$systemc_ir" -o "$systemc_cpp"
@@ -55,6 +65,7 @@ verify_args=(
   --manifest "$manifest"
   --hw-mlir "$slice_ir"
   --systemc "$systemc_cpp"
+  --mode "$systemc_mode"
   --report "$report"
 )
 if [[ -n "$uhdm_json" ]]; then

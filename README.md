@@ -77,6 +77,16 @@ make hierarchy-x86 \
   UHDM_JSON=evidence/uhdm/module_hierarchy.json
 ```
 
+需要实际转换已展开层级内的 Comb、寄存器和受支持的 `seq.firmem` 时，使用相同脚本并设置：
+
+```bash
+export DSCFLOW_SYSTEMC_MODE=behavior
+```
+
+其中存储器会生成为 `std::array` 仿真模型；当前范围是读延迟 0/1、写延迟 1 和整字/单 bit
+mask。延迟线程的 SystemC 发射端支持 `SC_THREAD + wait()`，但 SV delayed task 到该表示的
+LLHD 源端转换仍是未完成项。
+
 输出目录包含切片 HW IR、manifest、SystemC dialect、可编译 C++ 头文件和结构验证 JSON。
 详细语义与验收规则见
 [`docs/workflows/circt_hierarchy_peeling_zh.md`](docs/workflows/circt_hierarchy_peeling_zh.md)。

@@ -78,6 +78,7 @@ def main() -> int:
     parser.add_argument("--manifest", type=Path, required=True)
     parser.add_argument("--hw-mlir", type=Path, required=True)
     parser.add_argument("--systemc", type=Path, required=True)
+    parser.add_argument("--mode", choices=("structure", "behavior"), default="structure")
     parser.add_argument("--uhdm-json", type=Path)
     parser.add_argument("--report", type=Path, required=True)
     args = parser.parse_args()
@@ -132,6 +133,7 @@ def main() -> int:
         "status": "pass" if all(checks.values()) else "fail",
         "top": manifest["top"],
         "max_depth": manifest["max_depth"],
+        "systemc_mode": args.mode,
         "checks": checks,
         "counts": {
             "retained_modules": len(retained),

@@ -6,7 +6,7 @@
 |---|---|---|---|
 | T1 | x86 环境与输入基线 | 私有 RTL/spec、VESA model | 资产 SHA、Python 回归、SystemC/VESA 三路测试通过 ✅ |
 | T2 | UHDM 结构重建 | `inputs/private/rtl/surelog.f` | 261 实例层次已恢复；端口宽度已用 CIRCT HW IR 补全（3,243/3,243），结构指纹已更新 ✅ |
-| T3 | CIRCT 分阶段与层次剥离 | T2 RTL/UHDM、CIRCT | 深度受控的 HW 层次切片、frontier behavior slot 和结构清单已完成；真实 DSC depth 0～6 均通过 x86 SystemC 编译和结构门禁，depth 6 完整覆盖 50 个定义、89 条实例边 ✅ |
+| T3 | CIRCT 分阶段与层次剥离 | T2 RTL/UHDM、CIRCT | HW 结构切片已完成并通过真实 DSC x86 门禁；Comb/基础寄存器/受限 `seq.firmem` 行为模式已实现，等待新版 CI 与真实 DSC 分层复测；SV delayed task 的 LLHD→SC_THREAD 源端仍待实现 |
 | T4 | 分层 Function SystemC | T2 结构合同、顶层 function、逐模块 SV | 顶层及深度 1 的 7 个 function 已通过事务级和 VESA golden 差分；深度 2～5 待实现 |
 | T5 | 共享 stimulus 与软件 golden | 公司向量或批准的 VESA 向量 | Function-TLM 输出获得 golden-qualified 结果集 ✅ |
 | T6 | 差分与混合替换 | T4、T5、Verilator --sc | 首错定位到 format/stream；行为合同已推导（每行 16 muxword、128/216 行需补零 flush）；按合同修复 overlay 进行中 |
@@ -38,3 +38,14 @@
 - 每层生成 JSON manifest，并由 `tools/verify_circt_hierarchy_slice.py` 核对 HW、SystemC
   和可选 UHDM 顶层直属实例。
 - Verilator interop 不属于这项任务的验收范围。
+
+## 附：CIRCT 分层行为转换（2026-09-08 新增）
+
+- `DSCFLOW_SYSTEMC_MODE=behavior` 对 frontier 以上模块执行完整 HW/Comb/Seq 转换；frontier
+  extern 仍成为行为槽，不再阻塞已展开层级。
+- Comb 路径 A 与基础寄存器 Seq 已接入同一层次剥离入口。
+- 受限 `seq.firmem` 可导出为 `std::array<sc_uint<W>, D>` 仿真存储器，并新增 Linux x86
+  读写运行用例。
+- `SC_THREAD + wait(sc_time(...))` 的 SystemC dialect/exporter/运行用例已补；SV delayed task
+  到该 dialect 的 LLHD coroutine lowering 尚未完成。
+- 在 CI 和私有 x86 设计证据完成前，上述新行为能力保持“已实现、待任务验证”，不标记完成。

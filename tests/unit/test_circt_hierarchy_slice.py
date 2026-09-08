@@ -45,12 +45,16 @@ def test_hierarchy_slice_verifier_accepts_matching_artifacts(tmp_path: Path):
             str(hw_path),
             "--systemc",
             str(systemc_path),
+            "--mode",
+            "behavior",
             "--report",
             str(report_path),
         ],
         check=True,
     )
-    assert json.loads(report_path.read_text(encoding="utf-8"))["status"] == "pass"
+    report = json.loads(report_path.read_text(encoding="utf-8"))
+    assert report["status"] == "pass"
+    assert report["systemc_mode"] == "behavior"
 
 
 def test_hierarchy_slice_verifier_rejects_missing_systemc_module(tmp_path: Path):
