@@ -15,7 +15,10 @@ core_ir="$work_dir/hierarchy_top.hw.mlir"
 "$frontend" --single-unit --top hierarchy_top --ir-hw \
   "$repo_root/tests/fixtures/circt/hierarchy_peeling.sv" -o "$core_ir"
 
-for depth in 0 1 2; do
+# Depth 3 includes the leaf implementation in this fixture.  Stopping at
+# depth 2 only validates the hierarchy shells because the leaf remains a
+# frontier module; depth 3 exercises its Comb, Seq, reset and memory logic.
+for depth in 0 1 2 3; do
   "$repo_root/scripts/run_circt_hierarchy_peeling.sh" \
     "$core_ir" hierarchy_top "$depth" "$work_dir/depth-$depth"
 done
