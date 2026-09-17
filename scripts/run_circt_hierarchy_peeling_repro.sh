@@ -22,3 +22,12 @@ for depth in 0 1 2 3; do
   "$repo_root/scripts/run_circt_hierarchy_peeling.sh" \
     "$core_ir" hierarchy_top "$depth" "$work_dir/depth-$depth"
 done
+
+if [[ "${DSCFLOW_SYSTEMC_MODE:-structure}" == behavior ]]; then
+  c++ -std=c++17 \
+    -I"$work_dir/depth-3" \
+    "$repo_root/tests/fixtures/circt/hierarchy_peeling_tb.cpp" \
+    -o "$work_dir/hierarchy-peeling-runtime" \
+    $(pkg-config --cflags --libs systemc)
+  "$work_dir/hierarchy-peeling-runtime"
+fi

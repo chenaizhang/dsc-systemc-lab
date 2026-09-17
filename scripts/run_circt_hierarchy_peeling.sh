@@ -37,8 +37,12 @@ mkdir -p "$output_dir"
 export LD_LIBRARY_PATH="$library_path${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 
 case "$systemc_mode" in
-  structure) conversion_options=(--convert-hw-to-systemc="structure-only=true") ;;
-  behavior) conversion_options=(--convert-hw-to-systemc) ;;
+  structure) conversion_options=(--lower-hw-to-systemc-structure) ;;
+  behavior)
+    # The registered CIRCT pipeline runs aggregate preparation as ordinary
+    # top-level passes before entering dialect conversion.
+    conversion_options=(--lower-hw-to-systemc)
+    ;;
   *)
     echo "error: DSCFLOW_SYSTEMC_MODE must be 'structure' or 'behavior'" >&2
     exit 2

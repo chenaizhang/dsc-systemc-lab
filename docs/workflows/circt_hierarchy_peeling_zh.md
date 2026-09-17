@@ -33,14 +33,30 @@ fork 分支：`codex/systemc-backend`
 - manifest 同时记录保留边和被 frontier 截断的边；
 - 不运行 `hw-aggregate-to-comb`，不进入边界模块的 Seq/Memory 实现。
 
-`convert-hw-to-systemc="structure-only=true"` 同时扩展为：
+`lower-hw-to-systemc-structure` 同时扩展为：
 
 - 将带 `hw.hierarchy.frontier` 的 extern 声明生成 `SC_MODULE`；
 - 生成空的 `behaviorSlot` 和 `SC_METHOD` 注册；
 - 保留 `systemc.hierarchy.frontier`、深度和端口属性；
 - 父模块继续生成实例声明、`sc_signal` 和端口绑定。
 
-完整 `convert-hw-to-systemc` 另外支持：
+行为转换使用注册的顶层 pipeline：
+
+```text
+--lower-hw-to-systemc
+  = flatten aggregate IO
+  → aggregate-to-comb
+  → convert-bitcasts
+  → aggregate-to-comb
+  → convert-bitcasts
+  → convert-hw-to-systemc
+```
+
+不能在 `convert-hw-to-systemc` 内部动态调用这些准备 pass。大型设计中的聚合寄存器会让
+MLIR conversion 的 bookkeeping 失效。需要在插入 interop 的中间阶段停下时，应显式运行
+同样的准备序列，再调用 `convert-hw-to-systemc="prepared-input=true"`。
+
+行为 pipeline 另外支持：
 
 - frontier extern 仍生成相同的 `SC_MODULE` 行为槽；
 - 保留模块的 `comb.*` 通过路径 A 直接发射到 `SC_METHOD`；
@@ -91,7 +107,8 @@ scripts/run_circt_hierarchy_peeling.sh \
 1. `hw-extract-hierarchy-slice`；
 2. MLIR verifier；
 3. `behavior` 模式先运行 LLHD 清理、内联和 timed-process→Seq；
-4. 根据 `DSCFLOW_SYSTEMC_MODE` 运行 structure-only 或完整 `convert-hw-to-systemc`；
+4. 根据 `DSCFLOW_SYSTEMC_MODE` 运行 `lower-hw-to-systemc-structure` 或
+   `lower-hw-to-systemc`；
 5. `ExportSystemC`；
 6. SystemC C++ 语法编译；
 7. manifest、切片 HW、生成 SystemC 和可选 UHDM 的结构对比。
@@ -126,8 +143,8 @@ HW/Comb/Seq→SystemC 失败。
 | 类别 | 当前实现 | 尚未覆盖 |
 |---|---|---|
 | Comb | 常用算术、位运算、比较、mux、concat/extract、类型转换 | 以真实设计复测发现的首个新 operation 为准 |
-| Seq 寄存器 | 基础寄存器、enable、时钟边沿、复位 | 多时钟复杂过程需逐例验证 |
-| 存储器 | 受限 `seq.firmem` → `std::array` 仿真存储器 | 多端口复杂冲突、任意 mask、文件/随机初始化 |
+| Seq 寄存器 | 基础寄存器、enable、同步/异步复位、反馈保持；聚合寄存器先拆成标量 | 多时钟复杂过程需逐例验证 |
+| 存储器 | 受限 `seq.firmem` → `std::array` 仿真存储器；异步读在当前沿写入后更新，同步读由显式状态保存 | 多端口复杂冲突、任意 mask、文件/随机初始化 |
 | 延迟 task | `SC_THREAD` 与 `wait()` 的目标发射和运行测试 | SV/LLHD coroutine → SystemC thread 自动 lowering |
 
 所有能力先由 CIRCT Linux x86 CI 的编译和运行用例验证，再在私有 DSC core IR 上按深度复测。
