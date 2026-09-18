@@ -3,6 +3,7 @@
   "platform": "linux-x86_64",
   "circt_revision": "fb0695bbcd33937d6e9c7cfc8a702065e997d708",
   "date": "2026-09-18",
+  "clean_ci_run": "https://github.com/chenaizhang/circt/actions/runs/35328105544",
   "results": {
     "release_lit_tests": {
       "passed": 35,
@@ -22,8 +23,11 @@
       "retained_instances": 89,
       "frontier_modules": 0,
       "generated_header_bytes": 6955310,
+      "generated_header_sha256": "00e38bd48f024882416b8e449cdc94dfd5da09f2d9973b35187980c00ea6dc77",
       "cpp_syntax_compile": "pass"
-    }
+    },
+    "ci_binary_package_checksum": "pass",
+    "ci_binary_package_x86_full_dsc": "pass"
   },
   "scope": "conversion, structure, compilation, and representative runtime behavior",
   "not_validated": [

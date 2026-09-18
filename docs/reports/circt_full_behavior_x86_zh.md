@@ -110,6 +110,10 @@ build/bin/llvm-lit -sv \
 | 深度 6 frontier | 0 |
 | 生成 SystemC 头文件 | 6,955,310 字节 |
 | 生成 C++ 语法编译 | 通过 |
+| 同 revision 干净 CI 构建 | [通过](https://github.com/chenaizhang/circt/actions/runs/35328105544) |
+| CI 二进制包 SHA-256 校验及 x86 执行 | 通过 |
+| CI 二进制包重跑真实设计深度 6 和 C++ 编译 | 通过 |
+| CI 包与开发构建的生成头文件 SHA-256 | 一致：`00e38bd48f024882416b8e449cdc94dfd5da09f2d9973b35187980c00ea6dc77` |
 
 ## 结论与边界
 
