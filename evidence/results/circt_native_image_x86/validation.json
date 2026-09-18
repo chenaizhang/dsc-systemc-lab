@@ -1,0 +1,78 @@
+{
+  "format": "circt-native-image-differential-v1",
+  "host_architecture": "x86_64",
+  "circt_revision": "fb0695bbcd33937d6e9c7cfc8a702065e997d708",
+  "systemc_version": "3.0.1",
+  "input": {
+    "width": 96,
+    "height": 16,
+    "pixels": 1536,
+    "reference_payload_bytes": 1536,
+    "reference_cli_and_adapter_byte_exact": true
+  },
+  "frontend": {
+    "functional_primitive_overlay": true,
+    "stub_primitive_sources_excluded": true,
+    "input_hw_ir_sha256": "a7b6b6114ede3429baff8129318813022ad99918f9cc2a0e3147f68be0d9c355",
+    "contains_seq_firmem": true
+  },
+  "fresh_frontend_rebuild": {
+    "input_hw_ir_sha256": "9264c9ae870b42c8cd521a833cfc91a18b9d81ae6da375a6a7d9f1654ba8d7c9",
+    "conversion": "failed",
+    "first_failing_module": "dsce_stream_fifo",
+    "first_failing_operation": "seq.to_clock",
+    "diagnostic": "systemc.convert result cannot have !seq.clock type",
+    "observed_ir_difference": "Some llhd.wait event and successor parameter orders differ from the previously successful IR"
+  },
+  "reproduction_script": {
+    "fresh_ir_mode_exit_code": 1,
+    "pinned_ir_mode_exit_code": 3,
+    "pinned_ir_generated_header_sha256": "3d0b20f923b2970da22ee793459e00fb477e8d8059306006b1a4930d547c32a9",
+    "pinned_ir_pixels_accepted": 1536,
+    "pinned_ir_output_bytes": 0,
+    "pinned_ir_first_mismatch_vs_reference": 0
+  },
+  "native_systemc": {
+    "hierarchy_check": "pass",
+    "modules": 50,
+    "instances": 89,
+    "frontier": 0,
+    "header_bytes": 6960190,
+    "header_sha256": "3d0b20f923b2970da22ee793459e00fb477e8d8059306006b1a4930d547c32a9",
+    "cpp_compile": "pass",
+    "pixels_accepted": 1536,
+    "simulation_cycles": 1980,
+    "output_beats": 0,
+    "output_bytes": 0,
+    "first_mismatch_vs_reference": 0,
+    "output_drain_idle_limit": 1024,
+    "stage_probe_until_cycle": 957,
+    "stage_valid_samples_at_dsc_edges": {
+      "pack": 1152,
+      "partition": 1149,
+      "slice_input": 1149,
+      "convert": 1140,
+      "slice_buffer": 285,
+      "flatness": 278,
+      "predict": 277,
+      "format_output": 0,
+      "slice_output": 0,
+      "mux_output": 0
+    }
+  },
+  "verilator_rtl_baseline": {
+    "same_input_and_clocking": true,
+    "output_bytes": 1536,
+    "first_output_axi_cycle": 611,
+    "first_mismatch_vs_reference": 24,
+    "pack_accept": 384,
+    "partition_accept": 384,
+    "csc_accept": 384,
+    "slice_buffer_valid": 256,
+    "predict_valid": 256,
+    "format_muxword_words": 131,
+    "top_accept": 64
+  },
+  "pass": false,
+  "conclusion": "Native CIRCT SystemC compiles and accepts all input pixels but produces no output; the identical RTL baseline produces output. The first observed missing-valid boundary is after predict and before format output. This does not yet isolate the faulty operation or prove the VESA reference matches the RTL."
+}

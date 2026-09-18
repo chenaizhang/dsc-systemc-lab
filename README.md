@@ -156,6 +156,9 @@ bash scripts/run_hybrid_differential_verification.sh
 [CIRCT SystemC Release 验证报告](docs/reports/circt_systemc_release_x86_zh.md)；最新版 interop、
 `structure-only`、`seq.firmem` 和全局 aggregate 的定向复测见
 [CIRCT interop 回归复测报告](docs/reports/circt_interop_regression_retest_x86_zh.md)。
+全层次原生 CIRCT SystemC 的图像输入差分结果见
+[x86 图像差分报告](docs/reports/circt_native_image_differential_x86_zh.md)：结构与编译通过，
+但 96×16 图像收完后输出 0 字节，同输入 RTL 基线有 1536 字节输出，尚未语义闭环。
 
 当前 format/stream 排障已经把原来的多个确认项压缩为一个资料请求：提供正式 last/flush 实现，
 或一个 slice 连续两行的正确 VCS 边界波形。详见

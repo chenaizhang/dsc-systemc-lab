@@ -11,7 +11,10 @@ Comb、基础 Seq、聚合反馈和存储，并输出可由 SystemC C++ 编译�
 - CIRCT 分支：`codex/systemc-backend`；
 - CIRCT revision：`fb0695bbcd33937d6e9c7cfc8a702065e997d708`；
 - 发布版本：[systemc-backend-0.1.6](https://github.com/chenaizhang/circt/releases/tag/systemc-backend-0.1.6)；
-- 输入：Slang frontend 已展开的 `dsc_encoder` HW IR；
+- 原始输入：Slang frontend 已展开的 `dsc_encoder` HW IR；该版本把同步器和 RAM
+  仿真原语展开成常零空壳，仅适合结构/编译测试；
+- 功能复测输入：用有行为的同步器和 RAM shim 重新展开的 HW IR，包含
+  `seq.firreg`、`seq.firmem`；
 - 模式：`DSCFLOW_SYSTEMC_MODE=behavior`；
 - SystemC：3.0.1；
 - 验证日期：2026-09-18。
@@ -111,6 +114,8 @@ build/bin/llvm-lit -sv \
 | 深度 6 frontier | 0 |
 | 生成 SystemC 头文件 | 6,955,310 字节 |
 | 生成 C++ 语法编译 | 通过 |
+| 有行为原语输入的重新转换 | 50 模块、89 实例、0 frontier；6,960,190 字节，C++ 编译通过 |
+| 有行为原语输入的图像功能差分 | 96×16 输入被接收，但输出 0 字节；未通过 |
 | 同 revision 干净 CI 构建 | [通过](https://github.com/chenaizhang/circt/actions/runs/35328105544) |
 | CI 二进制包 SHA-256 校验及 x86 执行 | 通过 |
 | CI 二进制包重跑真实设计深度 6 和 C++ 编译 | 通过 |
@@ -119,12 +124,14 @@ build/bin/llvm-lit -sv \
 
 ## 结论与边界
 
-真实 `dsc_encoder` 已经能够完成全层次行为转换并输出可编译 SystemC，不再局限于空的 HW
-模块骨架。Comb、基础寄存器/时钟/复位、受支持存储和聚合胶水均有独立或端到端运行证据。
+真实 `dsc_encoder` 已经能够完成全层次转换并输出可编译 SystemC，不再局限于空的 HW
+模块骨架。Comb、基础寄存器/时钟/复位、受支持存储和聚合胶水均有独立运行证据。
+需要注意，本报告最初的 6,955,310 字节编译结果使用了空壳原语，不能作功能证据。
+后续已用有行为的原语重新生成并编译；
+[图像差分测试](circt_native_image_differential_x86_zh.md)发现原生模型零输出。
 
-这仍不是图像压缩功能正确性的最终证明。当前尚未把真实图像测试数据送入本轮生成模型并与
-参考码流比较，也没有完成每个模块的逐周期差分。转换日志中保留的前端顺序反馈警告必须通过
-上述语义验证消除风险。因此准确结论是“转换和编译闭环完成，代表性行为通过”，而不是“完整
-压缩算法已经与参考实现等价”。
+因此准确结论是“转换和编译闭环完成，代表性小样本行为通过；完整图像算法差分失败”。
+还须逐周期对齐 predict 至 format 之间的语义，并继续检查前端顺序反馈警告，不能宣称
+完整压缩算法已经与 RTL 或参考实现等价。
 
 机器可读证据位于 `evidence/results/circt_full_behavior_x86/`。

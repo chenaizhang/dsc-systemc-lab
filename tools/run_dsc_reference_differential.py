@@ -28,7 +28,12 @@ def main() -> int:
     parser.add_argument("--adapter-test", type=Path, required=True)
     parser.add_argument("--work-dir", type=Path, required=True)
     parser.add_argument("--report", type=Path, required=True)
+    parser.add_argument("--width", type=int, default=192)
+    parser.add_argument("--height", type=int, default=108)
+    parser.add_argument("--slice-width", type=int, default=96)
     args = parser.parse_args()
+    if min(args.width, args.height, args.slice_width) <= 0 or args.width % args.slice_width:
+        parser.error("width, height and slice-width must be positive; width must be divisible by slice-width")
 
     model_root = args.model_root.resolve()
     work_dir = args.work_dir.resolve()
@@ -36,7 +41,7 @@ def main() -> int:
     image = work_dir / "deterministic_rgb.ppm"
     source_list = work_dir / "source_list.txt"
     config = work_dir / "reference.cfg"
-    write_ppm(image, 192, 108)
+    write_ppm(image, args.width, args.height)
     source_list.write_text(f"{image}\n", encoding="utf-8")
     config.write_text(
         "\n".join(
@@ -45,8 +50,8 @@ def main() -> int:
                 "FUNCTION 1",
                 f"SRC_LIST {source_list}",
                 f"OUT_DIR {work_dir}",
-                "SLICE_WIDTH 96",
-                "SLICE_HEIGHT 108",
+                f"SLICE_WIDTH {args.slice_width}",
+                f"SLICE_HEIGHT {args.height}",
                 "BLOCK_PRED_ENABLE 1",
                 "VBR_ENABLE 0",
                 "LINE_BUFFER_BPC 16",
@@ -94,7 +99,7 @@ def main() -> int:
             "archive_sha256": "f2339edb1d5603d2f3ca5fbb6ca089b18ff73c43088352fa7c3b59df03e3ee2c",
         },
         "case": {
-            "id": "rgb444-8bpc-8bpp-192x108-two-slices",
+            "id": f"rgb444-8bpc-8bpp-{args.width}x{args.height}-{args.width // args.slice_width}-slices",
             "input_sha256": sha256(image),
             "reference_sha256": sha256(reference) if reference.is_file() else None,
             "reference_bytes": reference.stat().st_size if reference.is_file() else 0,
