@@ -1,0 +1,33 @@
+{
+  "status": "pass",
+  "platform": "linux-x86_64",
+  "circt_revision": "fb0695bbcd33937d6e9c7cfc8a702065e997d708",
+  "date": "2026-09-18",
+  "results": {
+    "release_lit_tests": {
+      "passed": 35,
+      "failed": 0
+    },
+    "project_python_tests": {
+      "passed": 49,
+      "failed": 0
+    },
+    "hierarchy_comb_seq_memory_runtime": "pass",
+    "systemc_memory_runtime": "pass",
+    "systemc_register_runtime": "pass",
+    "systemc_thread_runtime": "pass",
+    "verilated_scalar_and_aggregate_runtime": "pass",
+    "dsc_encoder_depth_6": {
+      "retained_modules": 50,
+      "retained_instances": 89,
+      "frontier_modules": 0,
+      "generated_header_bytes": 6955310,
+      "cpp_syntax_compile": "pass"
+    }
+  },
+  "scope": "conversion, structure, compilation, and representative runtime behavior",
+  "not_validated": [
+    "full-image golden bitstream equivalence",
+    "cycle-by-cycle equivalence for every dsc_encoder module"
+  ]
+}

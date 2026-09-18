@@ -1,0 +1,20 @@
+{
+  "status": "pass",
+  "top": "dsc_encoder",
+  "max_depth": 6,
+  "systemc_mode": "behavior",
+  "checks": {
+    "manifest_schema": true,
+    "hw_module_set": true,
+    "hw_instance_edges": true,
+    "systemc_module_set": true,
+    "frontier_is_retained": true,
+    "frontier_has_no_retained_children": true
+  },
+  "counts": {
+    "retained_modules": 50,
+    "frontier_modules": 0,
+    "retained_instances": 89
+  },
+  "uhdm_top_direct_children": null
+}
