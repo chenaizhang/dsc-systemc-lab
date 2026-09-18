@@ -10,6 +10,7 @@ Comb、基础 Seq、聚合反馈和存储，并输出可由 SystemC C++ 编译�
 - 验证环境：Linux x86_64；
 - CIRCT 分支：`codex/systemc-backend`；
 - CIRCT revision：`fb0695bbcd33937d6e9c7cfc8a702065e997d708`；
+- 发布版本：[systemc-backend-0.1.6](https://github.com/chenaizhang/circt/releases/tag/systemc-backend-0.1.6)；
 - 输入：Slang frontend 已展开的 `dsc_encoder` HW IR；
 - 模式：`DSCFLOW_SYSTEMC_MODE=behavior`；
 - SystemC：3.0.1；
@@ -114,6 +115,7 @@ build/bin/llvm-lit -sv \
 | CI 二进制包 SHA-256 校验及 x86 执行 | 通过 |
 | CI 二进制包重跑真实设计深度 6 和 C++ 编译 | 通过 |
 | CI 包与开发构建的生成头文件 SHA-256 | 一致：`00e38bd48f024882416b8e449cdc94dfd5da09f2d9973b35187980c00ea6dc77` |
+| Release 资产重新下载及 SHA-256 校验 | 通过；与 x86 已验证 CI 包逐字节一致 |
 
 ## 结论与边界
 

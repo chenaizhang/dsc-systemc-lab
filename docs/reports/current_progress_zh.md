@@ -41,8 +41,9 @@ SystemC 验证均在 Linux x86_64 环境执行。
    时序语义，不能只凭 C++ 编译结果判定正确。
 3. 深度 2～5 的独立 function reference 尚未逐模块完成；该工作不阻塞 CIRCT backend，后续可由
    模型验证任务并行推进。
-4. 新 revision 的干净 CI 构建和回归已经通过，其二进制候选包在 x86 上重跑完整设计成功；
-   正式标签的 Release 资产上传仍待完成，因此暂不替换 0.1.5 的交付链接。
+4. 新 revision 的干净 CI 构建和回归已经通过，其二进制包在 x86 上重跑完整设计成功；
+   [0.1.6 Release](https://github.com/chenaizhang/circt/releases/tag/systemc-backend-0.1.6)
+   已发布，重新下载的资产与实测包逐字节一致。标签工作流的重复构建仍在进行。
 
 ## 结论
 

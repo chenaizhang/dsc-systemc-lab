@@ -4,6 +4,7 @@
   "circt_revision": "fb0695bbcd33937d6e9c7cfc8a702065e997d708",
   "date": "2026-09-18",
   "clean_ci_run": "https://github.com/chenaizhang/circt/actions/runs/35328105544",
+  "release": "https://github.com/chenaizhang/circt/releases/tag/systemc-backend-0.1.6",
   "results": {
     "release_lit_tests": {
       "passed": 35,
@@ -27,7 +28,9 @@
       "cpp_syntax_compile": "pass"
     },
     "ci_binary_package_checksum": "pass",
-    "ci_binary_package_x86_full_dsc": "pass"
+    "ci_binary_package_x86_full_dsc": "pass",
+    "release_asset_sha256": "pass",
+    "release_asset_identical_to_x86_verified_ci_package": true
   },
   "scope": "conversion, structure, compilation, and representative runtime behavior",
   "not_validated": [
