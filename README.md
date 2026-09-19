@@ -159,6 +159,9 @@ bash scripts/run_hybrid_differential_verification.sh
 全层次原生 CIRCT SystemC 的图像输入差分结果见
 [x86 图像差分报告](docs/reports/circt_native_image_differential_x86_zh.md)：结构与编译通过，
 但 96×16 图像收完后输出 0 字节，同输入 RTL 基线有 1536 字节输出，尚未语义闭环。
+需要把当前 SystemC、固定 IR、测试和已知问题交给后续开发者时，使用
+[当前 SystemC 交接说明](docs/handoffs/current_systemc_delivery_zh.md)和
+`scripts/package_current_systemc_handoff_x86.sh` 在 Linux x86_64 生成内部交接包。
 
 当前 format/stream 排障已经把原来的多个确认项压缩为一个资料请求：提供正式 last/flush 实现，
 或一个 slice 连续两行的正确 VCS 边界波形。详见

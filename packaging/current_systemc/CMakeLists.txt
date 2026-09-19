@@ -1,0 +1,13 @@
+cmake_minimum_required(VERSION 3.20)
+project(dsc_current_systemc_handoff LANGUAGES CXX)
+
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(SystemC REQUIRED IMPORTED_TARGET systemc)
+
+add_executable(native_image_differential
+  tests/native_image_differential.cpp
+)
+target_compile_features(native_image_differential PRIVATE cxx_std_17)
+target_compile_options(native_image_differential PRIVATE -O1)
+target_include_directories(native_image_differential PRIVATE generated)
+target_link_libraries(native_image_differential PRIVATE PkgConfig::SystemC)
